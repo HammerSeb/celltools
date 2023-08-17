@@ -20,9 +20,7 @@ class basis():
         self.v1, self.v2, self.v3 = v1, v2, v3
 
         try:
-            if self.__check_linear_independece == True:
-                pass
-            else:
+            if self.__check_linear_independece == False:
                 raise LinearAlgebraError
         except LinearAlgebraError:
             print("vectors are not linear independent and cannot form a basis")
@@ -34,11 +32,10 @@ class basis():
         """
         checks if vectors v1, v2, v3 are linear independent by calculating the determinant
         """
-        _M = np.array([self.v1,self.v2,self.v3])
-        if det(_M) != 0:
-            return True
-        else:
-            return False
+        M = np.array([self.v1,self.v2,self.v3])
+        return det(M) == 0
+
+
 
 
 class LinearAlgebraError(Exception):
