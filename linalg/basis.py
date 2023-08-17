@@ -5,6 +5,11 @@ class LinearAlgebraError(Exception):
     pass
 
 def check_linear_independence():
+    """
+    Decorator function to check if the three vectors passed to the target function are linear independent
+    :raises:
+    LinearAlgebraError if the vectors are not linear independent
+    """
     def check_accepts(function):
         def new_function(*args, **kwargs):
             basis = np.array([*args[1:]])
