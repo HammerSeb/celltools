@@ -14,7 +14,7 @@ def check_linear_independence():
         def new_function(*args, **kwargs):
             basis = np.array([*args[1:]])
             if det(basis)==0:
-                raise LinearAlgebraError("vectors are not linear independent and cannot form a basis")
+                raise LinearAlgebraError("vectors are not linear independent")
 
             return function(*args, **kwargs)
 
