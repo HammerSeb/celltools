@@ -8,10 +8,9 @@ class basis_transformation:
         :param start_basis:
         :param target_basis:
         """
-        self.t_matrix = np.ones((3,3))
+        self.t_matrix = np.dot(basis1.basis, inv(basis2.basis))
         self.invt_matrix = inv(self.t_matrix)
 
-        pass
 
     def transform(self, v):
         """
@@ -19,7 +18,7 @@ class basis_transformation:
         :param v: nd.array of shape (3,)
         :return: nd.array of shape (3,)
         """
-        pass
+        return np.dot(v,self.t_matrix)
 
     def inv_transform(self, v):
         """
@@ -27,4 +26,4 @@ class basis_transformation:
         :param v: nd.array of shape (3,)
         :return: nd.array of shape (3,)
         """
-        pass
+        return np.dot(v, self.invt_matrix)

@@ -7,5 +7,5 @@ v3 = [1, 0, 1]
 b = basis(v1,v2,v3)
 
 a = vector([1,1,0], b)
-b = vector([0,1,1], b)
+c = vector([0,1,1], b)
 
