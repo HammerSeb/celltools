@@ -1,4 +1,4 @@
-from basis import basis, vector
+from linalg.basis import vector, basis
 
 v1 = [1, 0, 0]
 v2 = [0, 1, -1]

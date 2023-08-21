@@ -24,33 +24,40 @@ def check_linear_independence():
         return new_function
     return check_accepts
 
-
 class basis:
     #TODO: construction of basis from three vector instances should be possible
     @check_linear_independence()
-    def __init__(self, v1, v2, v3):
+    def __init__(self, v1, v2, v3, offset=None):
         """
-        Generates basis from three linear independent vectors v1, v2, v3
+        Generates basis from three linear independent vectors v1, v2, v3. Offset can be given to
         :param v1: list, tuple or nd.array with three entries as coordinates v11, v12, v13
         :param v2: list, tuple or nd.array with three entries as coordinates v21, v22, v23
         :param v3: list, tuple or nd.array with three entries as coordinates v31, v32, v33
+        :param offset:  list, tuple or nd.array with three entries as coordinates
         """
         self.basis = np.array([v1, v2, v3])
+
+        if offset == None:
+            self.offset = None
+        elif isinstance(offset, np.ndarray):
+            self.offset = offset
+        else:
+            self.offset = np.array(offset)
 
     @property
     def v1(self):
         """return v1 in global coordinates"""
-        return self.basis[0]
+        return self.basis[0] + self.offset
 
     @property
     def v2(self):
         """return v2 in global coordinates"""
-        return self.basis[1]
+        return self.basis[1] + self.offset
 
     @property
     def v3(self):
         """return v3 in global coordinates"""
-        return self.basis[2]
+        return self.basis[2] + self.offset
 
     def permute(self, order):
         """
@@ -71,14 +78,16 @@ class basis:
             raise IndexError("index out of bounds")
         else:
             if index == 0 or index == -3:
-                return self.v1
+                return self.basis[0]
             elif index == 1 or index == -2:
-                return self.v2
+                return self.basis[1]
             elif index ==2 or index == -1:
-                return self.v3
+                return self.basis[2]
+
+standard_basis = basis([1,0,0], [0,1,0], [0,0,1])
 
 class vector:
-    def __init__(self, vector, basis):
+    def __init__(self, vector, basis=standard_basis):
         """
         :param vector: list, tuple, ndarray shape (3,)
         :param basis: instance of basis class
@@ -146,6 +155,18 @@ class vector:
             return
         pass
 
+    def __getitem__(self, index):
+        if not isinstance(index, int):
+            raise ValueError("index needs to be integer")
+        elif abs(index) > 2 and index != -3:
+            raise IndexError("index out of bounds")
+        else:
+            if index == 0 or index == -3:
+                return self.vector[0]
+            elif index == 1 or index == -2:
+                return self.vector[1]
+            elif index ==2 or index == -1:
+                return self.vector[2]
 
 
 
