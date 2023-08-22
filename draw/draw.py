@@ -6,7 +6,7 @@ from . import Arrow3D
 # TODO: add functions, draw atom, draw bound, draw molecule, draw unitcell, draw_basis
 
 
-def make_figure(axis="on"):
+def make_figure(axis="on", xlim=(-2,2), ylim=(-2,2), zlim=(-2,2)):
     """
     create 3D plot instance
     :return: figure, axes
@@ -20,6 +20,9 @@ def make_figure(axis="on"):
     else:
         raise ValueError("axis must be \"on\" or \"off\"")
         return
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.set_zlim(*zlim)
     f.tight_layout()
     return f, ax
 

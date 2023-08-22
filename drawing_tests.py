@@ -13,13 +13,13 @@ v3 = [1, 0, 1]
 
 b = basis(v1,v2,v3)
 
-a = vector([1,1,0], b)
+a = vector([1,1,1], b)
 c = vector([0.7,-.873, 1.23], b)
 
 
 f, ax = dr.make_figure()
 dr.draw_point(ax, a, 100, "k")
-dr.draw_point(ax, c, 100, "k")
+# dr.draw_point(ax, c, 100, "k")
 dr.draw_line(ax, a, c, 3, "grey")
 
 dr.draw_basis(ax, b)
