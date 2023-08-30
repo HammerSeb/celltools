@@ -35,14 +35,23 @@ class basis:
         :param v3: list, tuple or nd.array with three entries as coordinates v31, v32, v33
         :param offset:  list, tuple or nd.array with three entries as coordinates
         """
-        self.basis = np.array([v1, v2, v3])
+        self._basis = np.array([v1, v2, v3])
 
         if offset == None:
-            self.offset = None
-        elif isinstance(offset, np.ndarray):
-            self.offset = offset
+            self._offset = None
         else:
-            self.offset = np.array(offset)
+            self.offset(offset)
+
+    @property
+    def basis(self):
+        return self._basis
+
+    @property
+    def offset(self):
+        if self._offset:
+            return self._offset
+        else:
+            return np.zeros((3,))
 
     @property
     def v1(self):
@@ -58,6 +67,13 @@ class basis:
     def v3(self):
         """return v3 in global coordinates"""
         return self.basis[2] + self.offset
+
+    @offset.setter
+    def offset(self,offset):
+        if isinstance(offset, np.ndarray):
+            self._offset = offset
+        else:
+            self._offset = np.array(offset)
 
     def permute(self, order):
         """
