@@ -74,8 +74,10 @@ class basis:
     def __getitem__(self, index):
         if not isinstance(index, int):
             raise ValueError("index needs to be integer")
+            return
         elif abs(index) > 2 and index != -3:
             raise IndexError("index out of bounds")
+            return
         else:
             if index == 0 or index == -3:
                 return self.basis[0]
