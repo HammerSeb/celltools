@@ -4,12 +4,15 @@ from numpy.linalg import inv
 from .basis import basis, vector, standard_basis
 
 class basis_transformation:
+    """
+    Sets up a basis transformation between basis1 and basis2
+    Parameters
+    ----------
+    basis1: :class:`basis`
+    basis2: :class:`basis`
+    """
     def __init__(self, basis1, basis2):
-        """
 
-        :param start_basis:
-        :param target_basis:
-        """
         self.basis1 = basis1
         self.basis2 = basis2
         self.t_matrix = np.dot(basis1.basis, inv(basis2.basis))

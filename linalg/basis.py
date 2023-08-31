@@ -25,7 +25,6 @@ def check_linear_independence():
     return check_accepts
 
 class basis:
-    #TODO: construction of basis from three vector instances should be possible
     @check_linear_independence()
     def __init__(self, v1, v2, v3, offset=None):
         """
@@ -41,6 +40,18 @@ class basis:
             self._offset = None
         else:
             self.offset(offset)
+
+    def __repr__(self):
+        return f'<basis {self.basis[0]}, {self.basis[1]}, {self.basis[2]}>'
+
+    def __eq__(self, other):
+        if isinstance(other, basis):
+            if np.all(self.v1 == other.v1) and np.all(self.v2 == other.v2) and np.all(self.v3 == other.v3):
+                return True
+            else:
+                return False
+        else:
+            raise TypeError("must be compared to instance of basis")
 
     @property
     def basis(self):
@@ -113,23 +124,12 @@ class vector:
         self.vector = np.array([vector[0], vector[1], vector[2]])
         self.basis = basis
 
-    @property
-    def abs(self):
-        """returns absolute value of vector instance in its basis coordinates"""
-        return np.sqrt(self.vector[0]**2 + self.vector[1]**2 + self.vector[2]**2)
-
-    @property
-    def global_coord(self):
-        """return vector in global coordinates"""
-        return self.vector[0]*self.basis[0] + self.vector[1]*self.basis[1] + self.vector[2]*self.basis[2]
-
-    @property
-    def abs_global(self):
-        return np.sqrt(self.global_coord[0]**2 + self.global_coord[1]**2 + self.global_coord[2]**2)
+    def __repr__(self):
+        return f"{self.vector}"
 
     def __add__(self, other):
         """addition of 2 vector instances"""
-        if not np.all(self.basis == other.basis):
+        if not self.basis == other.basis:
             raise LinearAlgebraError("basis do not match")
             return
         else:
@@ -140,7 +140,7 @@ class vector:
         pass
     def __sub__(self, other):
         """substraction of 2 vector instances"""
-        if not np.all(self.basis == other.basis):
+        if not self.basis == other.basis:
             raise LinearAlgebraError("basis do not match")
             return
         else:
@@ -173,6 +173,12 @@ class vector:
             return
         pass
 
+    def __eq__(self, other):
+        if isinstance(other, vector):
+            return self.global_coord == other.global_coord
+        else:
+            raise TypeError("must be compared to vector instance")
+
     def __getitem__(self, index):
         if not isinstance(index, int):
             raise ValueError("index needs to be integer")
@@ -185,6 +191,22 @@ class vector:
                 return self.vector[1]
             elif index ==2 or index == -1:
                 return self.vector[2]
+
+    @property
+    def abs(self):
+        """returns absolute value of vector instance in its basis coordinates"""
+        return np.sqrt(self.vector[0]**2 + self.vector[1]**2 + self.vector[2]**2)
+
+    @property
+    def global_coord(self):
+        """return vector in global coordinates"""
+        return self.vector[0]*self.basis[0] + self.vector[1]*self.basis[1] + self.vector[2]*self.basis[2]
+
+    @property
+    def abs_global(self):
+        return np.sqrt(self.global_coord[0]**2 + self.global_coord[1]**2 + self.global_coord[2]**2)
+
+
 
 
 

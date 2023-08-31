@@ -1,6 +1,9 @@
+from itertools import product
 import numpy as np
 from crystals.atom import Element
 from crystals.lattice import Lattice
+
+from . import sort2lists
 
 from linalg.basis import vector, basis, standard_basis
 from linalg.basis import LinearAlgebraError
@@ -10,17 +13,14 @@ from cell.tools import move
 
 def auto_label_atoms(atms):
     """
-    adds labels to a given list of atoms
+    adds labels to a given list of atoms. The label will be the element letter and a number from 1 to the number of
+    atoms of that elements. E.g., if there is for carbon atoms in the list the labels will be "C1", "C2", "C3", "C4".
+
     Parameters
     ----------
-    atms: iterable of instances of atom
-
-    Returns
-    -------
-    list of labeled atoms
-
+    atms: iterable of :class:`atom`
+        atoms to be labeled
     """
-    labeled_atoms = []
     list_of_elements = []
     for atom in atms:
         list_of_elements.append(atom.element)
@@ -34,9 +34,64 @@ def auto_label_atoms(atms):
 
     for element, atom in zip(list_of_elements, atms):
         _idx = elements.index(element)
-        atom.label(element + str(no_of_elements[_idx]))
+        atom.label = element + str(no_of_elements[_idx])
         no_of_elements[_idx] -= 1
-    return labeled_atoms
+
+def auto_label_molecules(molcs):
+    """
+    adds labels to a given list of Molecules. Every molecule label will be numbered up to the number of occurrences of
+    that label in the list of molecules.
+    ----------
+    molcs: list of :class:`molecule'
+    """
+    list_of_labels = []
+    for molc in molcs:
+        list_of_labels.append(molc.label)
+    labels = []
+    for label in list_of_labels:
+        if label not in labels:
+            labels.append(label)
+    no_of_labels = []
+    for label in labels:
+        no_of_labels.append(list_of_labels.count(label))
+
+    for element, atom in zip(list_of_labels, molcs):
+        _idx = labels.index(element)
+        atom.label(element + str(no_of_labels[_idx]))
+        no_of_labels[_idx] -= 1
+
+def chemical_formula(atms):
+    """
+    Returns the chemical formula of a molecule,
+    Parameters
+    ----------
+    atms: iterable of :class:`atom` or class:`molecule`
+
+    Returns
+    -------
+    chem_form: str
+        chemical formula of the given molecule
+    """
+    if isinstance(atms, molecule):
+        atms = atms.atoms
+    list_of_elements = []
+    for atom in atms:
+        list_of_elements.append(atom.element)
+    elements = []
+    for element in list_of_elements:
+        if element not in elements:
+            elements.append(element)
+    no_of_elements = []
+    for element in elements:
+        no_of_elements.append(list_of_elements.count(element))
+
+    no_of_elements, elements = sort2lists(no_of_elements, elements)
+
+    chem_form = ''
+    for e, n in zip(elements, no_of_elements):
+        chem_form += e + str(n)
+
+    return chem_form
 
 class atom(Element):
     """
@@ -48,16 +103,32 @@ class atom(Element):
         :param atm:
         :param position:
         """
-        super().__init__(self, atm)
+        super().__init__(atm)
         if not position:
             self._v = None
         else:
-            self.add_coords(position)
+            self.coords = position
 
         if label:
             self._label=label
         else:
             self._label=None
+
+    def __repr__(self):
+        if self.label:
+            return f"< {self.label} @ {self.coords}>"
+        else:
+            return f"< {self.element} @ {self.coords}>"
+
+    def __eq__(self, other):
+        if isinstance(other, atom):
+            if self.element == other.element and self.coords == other.coords:
+                return True
+            else:
+                return False
+        else:
+            raise TypeError("must be compared to atom instance")
+
     @property
     def coords(self):
         if self._v:
@@ -120,20 +191,34 @@ class bond:
         return (self._atm1.coords + self._atm2.coords).abs
 
 class molecule:
-    """
-    TODO: needs iterator
-    TODO:
-    """
     def __init__(self, atms, bonds=None, label=None):
         """
-
+        saves a group of atoms as a molecule. molecular bonds can be added if needed
         Parameters
         ----------
         atms: iterable of atoms in same basis
         bonds (optional): iterable of bonds
         """
-        self._atoms = auto_label_atoms(atms)
-        self._label = self.label(label)
+        self._atoms = atms
+        auto_label_atoms(self._atoms)
+
+        if label:
+            self.label = label
+        else:
+           self.label = chemical_formula(self.atoms)
+        self._bonds = []
+
+    def __repr__(self):
+        return f"< Molecule {self.label} >"
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            if item in self.atom_labels:
+                return self.atoms[self.atom_labels.index(item)]
+            else:
+                raise IndexError("atom label not in atom labels")
+        if isinstance(item, int):
+            return self.atoms[item]
 
     @property
     def atoms(self):
@@ -159,14 +244,23 @@ class molecule:
     def label(self, label):
         self._label = label
 
-    def __get_item__(self, item):
-        if isinstance(item, str):
-            if item in self.atom_labels:
-                return self.atoms[self.atom_labels.index(item)]
-            else:
-                raise IndexError("atom label not in atom labels")
-        if isinstance(item, int):
-            return self.atoms[item]
+    def add_bond(self,bnd):
+        """
+
+        Parameters
+        ----------
+        bnd
+
+        Returns
+        -------
+
+        """
+        if isinstance(bnd, bond):
+            self._bonds.append(bnd)
+        else:
+            self._bonds.append(bond(bnd[1], bnd[1]))
+
+
 
 class lattice(basis):
     def __init__(self, Basis):
@@ -177,32 +271,45 @@ class lattice(basis):
         self._offset = None
 
 class cell:
+    """
+    Class representing a unit cell with lattice vectors and a basis comprised of atoms or molecules
+    Parameters
+    ----------
+    latt: :class:`lattice` or :class:`linalg.basis`
+        defining the lattice vectors in which the basis coordinates are expressed
+    objs: iterable of :class:`atom` or :class:`molecule`
+        basis of the unit cell, i.e. the atoms in the unit cell. Coordinates must be expressed in the lattice basis
+    """
     def __init__(self, latt, objs):
-        """
-
-        Parameters
-        ----------
-        latt: instance of lattice or linalg.basis
-        objs: iterable with atoms or molecules in coordinates of lattice
-        """
-
         self._lattice = self.lattice(latt)
         self.base(objs)
 
     @property
     def lattice(self):
+        """lattice systems"""
         return self._lattice
 
     @property
     def base(self):
+        """
+        cell content, i.e. atoms or molecules
+        Returns
+        -------
+        _atoms: list of :class:`atom`
+            list of "uncorrelated" atoms in the unit cell
+        _molecules: list of :class:`molecule`
+            list of molecules in the unit cell
+        """
         return self._atoms, self._molecules
 
     @property
     def atoms(self):
+        """ atoms in the unit cell """
         return self._atoms
 
     @property
     def molecules(self):
+        """ molecules in the unit cell"""
         return self._molecules
 
     @lattice.setter
@@ -220,20 +327,45 @@ class cell:
                 self._atoms.append(obj)
             if isinstance(obj, molecule):
                 self._molecules.append(obj)
-                for atm in obj:
-                    self._atoms.append(atm)
 
         self._atoms = auto_label_atoms(self._atoms)
 
     def add_atom(self, atm):
+        """
+        adds uncorrelated atom to the unit cell
+        Parameters
+        ----------
+        atm: :class:`atom`
+        """
         self._atoms.append(atm)
 
     def add_molecule(self, molc):
+        """
+        adds molecule to the unit cell
+        Parameters
+        ----------
+        molc: :class:`molecule`
+        """
         self._molecules.append(molc)
 
 class super_cell(cell):
     def __init__(self, unit_cell, size):
         self.lattice(unit_cell.lattice)
+        self._basevectors = [vector([1,0,0],self.lattice),
+                             vector([0,1,0],self.lattice),
+                             vector([0,0,1],self.lattice)]
 
-            for atm in unit_cell.atoms:
-                pass
+        self._translation_vector = [l*vector([1,0,0],self.lattice) +
+                                    m*vector([0,1,0],self.lattice) +
+                                    n* vector([0,0,1],self.lattice)
+                                    for (l,m,n) in product(range(size[0]),range(size[1]),range(size[2]))]
+
+        for trans_vec in self._translation_vector:
+            uc_atms, uc_molcs = unit_cell.base
+            for _atm in uc_atms:
+                _atm = move(_atm, trans_vec)
+                self.add_atom(_atm)
+            for _molc in uc_molcs:
+                _molc = move(_molc, trans_vec)
+                self.add_molecule(_molc)
+
