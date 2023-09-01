@@ -1,4 +1,5 @@
 from itertools import product
+from copy import copy
 import numpy as np
 from crystals.atom import Element
 from crystals.lattice import Lattice
@@ -260,8 +261,6 @@ class molecule:
         else:
             self._bonds.append(bond(bnd[1], bnd[1]))
 
-
-
 class lattice(basis):
     def __init__(self, Basis):
         if isinstance(Basis, basis):
@@ -281,8 +280,11 @@ class cell:
         basis of the unit cell, i.e. the atoms in the unit cell. Coordinates must be expressed in the lattice basis
     """
     def __init__(self, latt, objs):
-        self._lattice = self.lattice(latt)
-        self.base(objs)
+        self._atoms, self._molecules = [], []
+        self.set_lattice(latt)
+        self.set_base(objs)
+        auto_label_atoms(self._atoms)
+        auto_label_molecules(self._molecules)
 
     @property
     def lattice(self):
@@ -312,23 +314,25 @@ class cell:
         """ molecules in the unit cell"""
         return self._molecules
 
-    @lattice.setter
-    def lattice(self, latt):
+    def set_lattice(self, latt):
         if isinstance(latt, basis) or isinstance(latt, lattice):
             self._lattice = latt
         else:
             raise ValueError("latt needs to be instance of basis or lattice")
 
-    @base.setter
-    def base(self, objs):
-        self._atoms, self._molecules = [], []
+    def set_base(self, objs):
+        """
+        sets the crystal base of the cell
+        Parameters
+        ----------
+        objs: iterable of :class:`atom` or :class:`molecule`
+            atoms or molecules in the unit cell. Atom positions must be given in lattice coordinates.
+        """
         for obj in objs:
             if isinstance(obj, atom):
                 self._atoms.append(obj)
             if isinstance(obj, molecule):
                 self._molecules.append(obj)
-
-        self._atoms = auto_label_atoms(self._atoms)
 
     def add_atom(self, atm):
         """
@@ -350,7 +354,8 @@ class cell:
 
 class super_cell(cell):
     def __init__(self, unit_cell, size):
-        self.lattice(unit_cell.lattice)
+        self._atoms, self._molecules = [], []
+        self.set_lattice(unit_cell.lattice)
         self._basevectors = [vector([1,0,0],self.lattice),
                              vector([0,1,0],self.lattice),
                              vector([0,0,1],self.lattice)]
@@ -363,9 +368,11 @@ class super_cell(cell):
         for trans_vec in self._translation_vector:
             uc_atms, uc_molcs = unit_cell.base
             for _atm in uc_atms:
-                _atm = move(_atm, trans_vec)
-                self.add_atom(_atm)
+                _atm_new = copy(_atm)
+                move(_atm_new, trans_vec)
+                self.add_atom(_atm_new)
             for _molc in uc_molcs:
-                _molc = move(_molc, trans_vec)
-                self.add_molecule(_molc)
+                _molc_new = copy(_molc)
+                move(_molc_new, trans_vec)
+                self.add_molecule(_molc_new)
 

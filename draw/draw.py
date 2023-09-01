@@ -1,3 +1,4 @@
+import numpy as np
 from matplotlib import pyplot as plt
 
 from . import vector, basis, standard_basis
@@ -67,9 +68,9 @@ def draw_vector(ax, vec, offset=None, c="r", lw=3):
     :param vec: vector instance
     :param offset: vector instance
     """
-    if not offset:
+    if isinstance(offset, np.ndarray):
         if isinstance(vec,vector):
-            ax.arrow3d(0, 0, 0, vec.global_coord[0], vec.global_coord[1], vec.global_coord[2],
+            ax.arrow3d(offset[0], offset[1], offset[2], vec.global_coord[0], vec.global_coord[1], vec.global_coord[2],
                        mutation_scale=20, arrowstyle="-|>", color=c, linewidth=lw)
         else:
             raise ValueError("input needs to be instance of vector class")
@@ -85,3 +86,4 @@ def draw_basis(ax, basis, c="grey", lw=3):
     draw_vector(ax,vector(basis[0]), offset=basis.offset, c=c, lw=lw)
     draw_vector(ax,vector(basis[1]), offset=basis.offset, c=c, lw=lw)
     draw_vector(ax,vector(basis[2]), offset=basis.offset, c=c, lw=lw)
+
