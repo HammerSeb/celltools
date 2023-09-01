@@ -4,9 +4,6 @@ from matplotlib import pyplot as plt
 from . import vector, basis, standard_basis
 from . import Arrow3D
 
-# TODO: add functions, draw atom, draw bound, draw molecule, draw unitcell, draw_basis
-
-
 def make_figure(axis="on", xlim=(-2,2), ylim=(-2,2), zlim=(-2,2)):
     """
     create 3D plot instance
@@ -36,9 +33,9 @@ def draw_point(ax, coord, s, c):
     :param c: color for axes.scatter
     """
     if isinstance(coord, vector):
-        ax.scatter(*coord.global_coord, c=c, s=s)
+        ax.scatter(*coord.global_coord, color=c, s=s)
     else:
-        ax.scatter(coord[0], coord[1], coord[2], c=c, s=s)
+        ax.scatter(coord[0], coord[1], coord[2], color=c, s=s)
 
 def draw_line(ax, coord1, coord2, lw, c):
     """
@@ -87,3 +84,19 @@ def draw_basis(ax, basis, c="grey", lw=3):
     draw_vector(ax,vector(basis[1]), offset=basis.offset, c=c, lw=lw)
     draw_vector(ax,vector(basis[2]), offset=basis.offset, c=c, lw=lw)
 
+
+def draw_frame(ax, basis, c="black", lw=1.5):
+    _origin = vector(basis.offset)
+    _a, _b, _c = vector(basis.basis[0]), vector(basis.basis[1]), vector(basis.basis[2])
+    draw_line(ax, _origin, _a+_origin, c=c, lw=lw)
+    draw_line(ax, _origin, _b+_origin, c=c, lw=lw)
+    draw_line(ax, _a+_origin, _a+_b+_origin, c=c, lw=lw)
+    draw_line(ax, _b+_origin, _a+_b+_origin, c=c, lw=lw)
+    draw_line(ax, _origin, _c+_origin, c=c, lw=lw)
+    draw_line(ax, _a+_origin, _a+_c+_origin, c=c, lw=lw)
+    draw_line(ax, _b+_origin, _b+_c+_origin, c=c, lw=lw)
+    draw_line(ax, _a+_b+_origin, _a+_b+_c+_origin, c=c, lw=lw)
+    draw_line(ax, _c+_origin, _a+_c+_origin, c=c, lw=lw)
+    draw_line(ax, _c+_a+_origin, _c+_a+_b+_origin, c=c, lw=lw)
+    draw_line(ax, _c+_b+_origin, _c+_b+_a+_origin, c=c, lw=lw)
+    draw_line(ax, _c+_origin, _b+_c+_origin, c=c, lw=lw)

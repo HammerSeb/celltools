@@ -26,7 +26,7 @@ def check_linear_independence():
 
 class basis:
     @check_linear_independence()
-    def __init__(self, v1, v2, v3, offset=None):
+    def __init__(self, v1, v2, v3, offset=np.zeros((3,))):
         """
         Generates basis from three linear independent vectors v1, v2, v3. Offset can be given to
         :param v1: list, tuple or nd.array with three entries as coordinates v11, v12, v13
@@ -36,10 +36,7 @@ class basis:
         """
         self._basis = np.array([v1, v2, v3])
 
-        if offset == None:
-            self._offset = None
-        else:
-            self.offset(offset)
+        self.offset = offset
 
     def __repr__(self):
         return f'<basis {self.basis[0]}, {self.basis[1]}, {self.basis[2]}>'
@@ -59,10 +56,7 @@ class basis:
 
     @property
     def offset(self):
-        if self._offset:
-            return self._offset
-        else:
-            return np.zeros((3,))
+        return self._offset
 
     @property
     def v1(self):

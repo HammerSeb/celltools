@@ -19,8 +19,8 @@ from matplotlib import pyplot as plt
 latt = lattice_from_cell_parameters(3.8052, 12.9590, 12.0430, 90.6400, 95.2600, 90.7200)
 
 atms = [atom('C', vector([0,0,0], latt)), atom('O', vector([0.5,.5,.5], latt)), atom('H', vector([0.1,0,0], latt))]
-
-uc = cell(latt, atms)
+molc = molecule(atms)
+uc = cell(latt, [molc])
 suc = super_cell(uc, (3,3,3))
 f, ax = make_figure(axis="off",xlim=(-2,15),ylim=(-2,15),zlim=(-2,15))
 draw_basis(ax, latt)

@@ -2,27 +2,20 @@ import numpy as np
 import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib import pyplot as plt
+from crystals import Crystal
 
 
 from linalg.basis import vector, basis, standard_basis
-from draw import draw as dr
+from draw.draw import make_figure, draw_basis
+from draw.cells import draw_atom, draw_molecule, draw_cell, draw_supercell
 
-v1 = [1, 0, 0]
-v2 = [0, 1, -1]
-v3 = [1, 0, 1]
+from cell.contents import atom, molecule, cell, super_cell
+from cell.generate import lattice_from_crystal
 
-b = basis(v1,v2,v3)
-
-a = vector([1,1,1], b)
-c = vector([0.7,-.873, 1.23], b)
+cryst = Crystal.from_cif("testdata/erk.cif")
+uc = lattice_from_crystal(cryst)
 
 
-f, ax = dr.make_figure()
-dr.draw_point(ax, a, 100, "k")
-# dr.draw_point(ax, c, 100, "k")
-dr.draw_line(ax, a, c, 3, "grey")
-
-dr.draw_basis(ax, b)
-
-
-plt.show()
+f, ax = make_figure(axis="off",xlim=(-2,45),ylim=(-2,45),zlim=(-2,45))
+draw_cell(ax, uc)
+f.show()

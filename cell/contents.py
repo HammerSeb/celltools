@@ -1,5 +1,5 @@
 from itertools import product
-from copy import copy
+from copy import copy, deepcopy
 import numpy as np
 from crystals.atom import Element
 from crystals.lattice import Lattice
@@ -56,9 +56,9 @@ def auto_label_molecules(molcs):
     for label in labels:
         no_of_labels.append(list_of_labels.count(label))
 
-    for element, atom in zip(list_of_labels, molcs):
-        _idx = labels.index(element)
-        atom.label(element + str(no_of_labels[_idx]))
+    for label, molc in zip(list_of_labels, molcs):
+        _idx = labels.index(label)
+        molc.label = label + str(no_of_labels[_idx])
         no_of_labels[_idx] -= 1
 
 def chemical_formula(atms):
@@ -226,6 +226,10 @@ class molecule:
         return self._atoms
 
     @property
+    def bonds(self):
+        return self._bonds
+
+    @property
     def atom_labels(self):
         return [atm.label for atm in self.atoms]
 
@@ -267,7 +271,7 @@ class lattice(basis):
             self._basis = Basis.basis
         else:
             super().__init__(self, Basis[0], Basis[1], Basis[2])
-        self._offset = None
+        self._offset = np.zeros((3,))
 
 class cell:
     """
@@ -372,7 +376,7 @@ class super_cell(cell):
                 move(_atm_new, trans_vec)
                 self.add_atom(_atm_new)
             for _molc in uc_molcs:
-                _molc_new = copy(_molc)
+                _molc_new = deepcopy(_molc)
                 move(_molc_new, trans_vec)
                 self.add_molecule(_molc_new)
 
