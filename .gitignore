@@ -1,4 +1,4 @@
 #ignore
 .idea
 .run
-.egg-info
+*.egg-info
