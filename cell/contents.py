@@ -10,7 +10,6 @@ from linalg.basis import vector, basis, standard_basis
 from linalg.basis import LinearAlgebraError
 
 from cell.tools import move
-# TODO: unit_cell, super_cell
 
 def auto_label_atoms(atms):
     """

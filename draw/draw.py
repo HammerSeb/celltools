@@ -4,6 +4,8 @@ from matplotlib import pyplot as plt
 from . import vector, basis, standard_basis
 from . import Arrow3D
 
+# TODO: rewrite draw for pyqtgraph!
+
 def make_figure(axis="on", xlim=(-2,2), ylim=(-2,2), zlim=(-2,2)):
     """
     create 3D plot instance

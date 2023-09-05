@@ -84,11 +84,35 @@ def cell_from_cif(file, type="file"):
         _latt = lattice_from_cell_parameters(*_latt_params)
 
 
+def _export_atom_list_to_cif(atoms, file=None):
+    """
+    atom list is formatted in cif format and written to stdout or file
+    Parameters
+    ----------
+    atoms: iterable of :class:`cell.contents.atoms`
+        list of atoms for cif file.
+    file: file path (default: None)
+        file path to save output too, if left unspecified the formatted atom list is returned as a list of strings where
+        each entry is one line of the cif file.
+
+    Returns
+    -------
+    list of str
+        lines of output file as list
+
+    """
+
+def _export_lattice_to_cif(lattice, file=None):
+    pass
+
+
+
 
 
 
 def export_cell_to_cif(cell):
     pass
+
 
 
 
