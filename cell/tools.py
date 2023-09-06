@@ -1,3 +1,4 @@
+import numpy as np
 from copy import copy
 import cell.contents as cc
 from linalg.basis import basis, vector
@@ -38,40 +39,54 @@ def generate_from_symmetry(atom, operator):
     """
     _atm = copy(atom)
     _coords =  _atm.coords
-    _atm.coords = vector(
-        [operator.a*_coords[0]+operator.x0,
-         operator.b*_coords[1]+operator.y0,
-         operator.c*_coords[2]+operator.z0,
-         ], _coords.basis
-    )
-    if _atm.label:
-        _atm.coords = _atm.label + "*"
-    return _atm
-
+    if not operator.id:
+        return _atm
+    else:
+        for id in operator.id:
+            if np.all(_atm.coord.vector == id):
+                return _atm
+        _atm.coords = vector(
+            [operator.a*_coords[0]+operator.x0,
+             operator.b*_coords[1]+operator.y0,
+             operator.c*_coords[2]+operator.z0,
+             ], _coords.basis
+        )
+        if _atm.label:
+            _atm.coords = _atm.label + "*"
+        return _atm
 
 
 class symmetry_operator:
-    def __init__(self,a ,b ,c ,x0 , y0, z0):
-        """
+    """
+    class specifing a symmetry operation in a crystal lattice to generate full basis from smallest possible basis
 
-        Parameters
-        ----------
-        a
-        b
-        c
-        x0
-        y0
-        z0
-        """
+    Parameters
+    ----------
+    a, b, c, x0, y0, z0: float
+        parameters specifing symmetry operation on coordinates [x,y,z] as
+        [a*x + x0, b*y + y0, c*z + z0]
+    label: str
+        custom name of symmetry operation used in __repr__
+    id: list
+        list of coordinates that are kept in place by symmetry operation, e.g. [[0,0,0]] for inversion [-x, -y, -z].
+        leave empty for identity
+    """
+    def __init__(self,a ,b ,c ,x0 , y0, z0, id=[], label=None):
         self._a = a
         self._b = b
         self._c = c
         self._x0 = x0
         self._y0 = y0
         self._z0 = z0
+        self._id = id
+
+        self.label = label
 
     def __repr__(self):
-        return f"Symm {self.a:.0f}x+{self.x0:.2f} | {self.b:.0f}y+{self.y0:.2f} | {self.c:.0f}y+{self.z0:.2f} "
+        if self.label:
+            return f"< Symm {self.label} >"
+        else:
+            return f"< Symm {self.a:.0f}x+{self.x0:.2f} | {self.b:.0f}y+{self.y0:.2f} | {self.c:.0f}y+{self.z0:.2f} >"
 
     def __eq__(self, other):
         if isinstance(other, symmetry_operator):
@@ -81,6 +96,8 @@ class symmetry_operator:
             ])
         else:
             raise TypeError(f"cannot compare symmetry_operator with {type(other)}")
+
+
 
     @property
     def a(self):
@@ -100,3 +117,16 @@ class symmetry_operator:
     @property
     def z0(self):
         return self._z0
+
+    @property
+    def id(self):
+        return self._id
+
+    def addid(self, coord):
+        """
+        Parameters
+        ----------
+        coord: list (3,0
+            list of coordinates not affected by symmetry operation
+        """
+        self._id.append(coord)

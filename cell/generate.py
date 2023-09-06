@@ -2,7 +2,11 @@ import re
 import numpy as np
 from numpy import deg2rad, cos, sin, sqrt
 import cell.contents as cc
+import cell.tools as ct
+from cell.spacegroup_data import SPACE_GROUP
 from linalg.basis import basis, vector
+
+from CifFile import ReadCif
 
 # TODO: atom list from cif, lattice from cif, unit cell from cif
 # TODO: function to generate unit_cell from Crystals object
@@ -48,6 +52,7 @@ def cell_from_crystal(cryst):
         atms.append(cc.atom(atm.element, vector(atm.coords_fractional, latt)))
     return cc.cell(latt,atms)
 
+
 def cell_from_cif(file, type="file"):
     """
     Generatures a :class:`cell` from a given cif (crystallographic information framework). Supported data type is cif1!
@@ -64,24 +69,38 @@ def cell_from_cif(file, type="file"):
         crystal structure
     -------
     """
-    with open(file, 'r') as cif:
-        _latt_params = []
-        for line in cif.readlines():
-            #generates lattice from file
-            line = line.lower()
-            if "_cell_length_a" in line:
-                _latt_params.append(re.findall("\d+\.\d+"), line)
-            elif "_cell_length_b" in line:
-                _latt_params.append(re.findall("\d+\.\d+"), line)
-            elif "_cell_length_c" in line:
-                _latt_params.append(re.findall("\d+\.\d+"), line)
-            elif "_cell_length_alpha" in line:
-                _latt_params.append(re.findall("\d+\.\d+"), line)
-            elif "_cell_length_beta" in line:
-                _latt_params.append(re.findall("\d+\.\d+"), line)
-            elif "_cell_length_gamma" in line:
-                _latt_params.append(re.findall("\d+\.\d+"), line)
-        _latt = lattice_from_cell_parameters(*_latt_params)
+    cif = ReadCif(file)[ReadCif(file).keys()[0]]
+
+    ltt_blocks = ["_cell_length_a", "_cell_length_b", "_cell_length_c",
+                   "_cell_angle_alpha", "_cell_angle_beta", "_cell_angle_gamma"]
+
+    atm_blocks = ["_atom_site_fract_x", "_atom_site_fract_y", "_atom_site_fract_z"]
+
+    # creating lattice from cif
+    _latt_params = []
+    for block in ltt_blocks:
+        _latt_params.append(float(cif[block]))
+    _latt = lattice_from_cell_parameters(*_latt_params)
+
+    _elem = list(map(lambda label : re.findall("\D+" ,label) , cif["_atom_site_label"]))
+    _coords = list(map(
+        lambda coord: vector([float(coord[0]), float(coord[1]), float(coord[2])], _latt),
+        zip(cif["_atom_site_fract_x"], cif["_atom_site_fract_y"], cif["_atom_site_fract_z"])
+    ))
+    _atms = []
+    for el, coord, label in zip(_elem, _coords, cif["_atom_site_label"]):
+        _atms.append(cc.atom(el[0],coord,label))
+
+    if cif["_symmetry_int_tables_number"] in SPACE_GROUP.keys():
+        _atmssym = []
+        for operator in SPACE_GROUP[cif["_symmetry_int_tables_number"]]:
+            # generate atms from symmetry element except inversion
+            for atm in _atms:
+                _atmssym.append(ct.generate_from_symmetry(atm, operator))
+        return cc.cell(_latt, _atmssym)
+    else:
+        return cc.cell(_latt, _atms)
+
 
 
 def _export_atom_list_to_cif(atoms, file=None):
