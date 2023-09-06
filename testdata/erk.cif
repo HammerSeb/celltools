@@ -1,0 +1,111 @@
+####################################################################### 
+# 
+# This file contains crystal structure data downloaded from the 
+# Cambridge Structural Database (CSD) hosted by the Cambridge 
+# Crystallographic Data Centre (CCDC).
+# 
+# Full information about CCDC data access policies and citation 
+# guidelines are available at http://www.ccdc.cam.ac.uk/access/V1 
+# 
+# Audit and citation data items may have been added by the CCDC. 
+# Please retain this information to preserve the provenance of 
+# this file and to allow appropriate attribution of the data. 
+# 
+#######################################################################
+
+### Modified by exchanging the central Cu atom with Zn 
+
+data_compound_1
+_audit_block_doi                 10.5517/cc3s97d
+_database_code_depnum_ccdc_archive 'CCDC 112723'
+_audit_update_record             
+;
+1998-12-21 deposited with the CCDC.	2020-07-08 downloaded from the CCDC.
+;
+
+_audit_creation_method           'manually at CCDC'
+
+_chemical_name_systematic        
+;  
+?
+;
+_chemical_name_common            ?
+_chemical_formula_sum            C32H16N8Zn
+_chemical_formula_moiety         ?
+_chemical_formula_weight         ?
+_chemical_melting_point          ?
+
+_symmetry_cell_setting           triclinic
+_symmetry_space_group_name_H-M   P-1
+_symmetry_Int_Tables_number      ?
+
+_cell_length_a                   3.8052
+_cell_length_b                   12.9590
+_cell_length_c                   12.0430
+_cell_angle_alpha                90.6400
+_cell_angle_beta                 95.2600
+_cell_angle_gamma                90.7200
+_cell_volume                     ?
+_cell_formula_units_Z            ?
+
+_exptl_crystal_density_diffrn    ?
+_exptl_crystal_description       ?
+_exptl_crystal_colour            ?
+_exptl_special_details           
+;
+?
+;
+
+_diffrn_ambient_temperature      ?
+_diffrn_radiation_probe          x-ray
+
+_refine_ls_R_factor_gt           ?
+_refine_special_details          
+; 
+?
+;
+
+loop_
+_atom_site_label
+_atom_site_fract_x
+_atom_site_fract_y
+_atom_site_fract_z
+C1 0.39265 -0.02209 0.22569
+C2 0.03765 0.30550 0.11961
+C3 -0.02000 0.41351 0.12037
+H4 0.07110 0.55019 0.21877
+C5 0.10989 0.47161 0.21630
+N6 0.38118 0.07953 0.25108
+C7 0.29295 0.42210 0.30887
+H8 0.60641 -0.35371 0.24971
+C9 0.34862 0.31377 0.30686
+N10 0.06229 0.13600 0.07969
+C11 0.21737 0.25686 0.21058
+H12 0.91538 -0.34340 0.43732
+Zn13 0.00000 0.00000 0.00000
+C14 0.22812 0.15162 0.18315
+H15 -0.15260 0.44924 0.05328
+C16 0.55151 -0.09629 0.29702
+H17 0.38585 0.46509 0.37793
+C18 0.72929 -0.08877 0.40539
+C19 -0.05496 0.22833 0.03969
+C20 0.86255 -0.18062 0.45633
+H21 0.99259 -0.17709 0.53503
+C22 0.81771 -0.27738 0.39950
+H23 0.76163 -0.01872 0.44653
+C24 0.63910 -0.28369 0.29093
+H25 0.48107 0.27785 0.37383
+C26 0.50771 -0.19139 0.24124
+N27 0.25680 -0.06940 0.12998
+N28 0.23282 -0.24577 0.06018
+C29 0.32399 -0.17203 0.13774
+
+
+loop_
+_geom_bond_atom_site_label_1
+_geom_bond_atom_site_label_2
+_geom_bond_distance
+? ? ?
+
+#END 
+
