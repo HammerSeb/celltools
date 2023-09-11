@@ -101,6 +101,8 @@ def cell_from_cif(file, type="file"):
     else:
         return cc.cell(_latt, _atms)
 
+
+
 def _export_atom_list_to_cif(atoms, file=None):
     """
     atom list is formatted in cif format and written to stdout or file
@@ -121,6 +123,11 @@ def _export_atom_list_to_cif(atoms, file=None):
 
 def _export_lattice_to_cif(lattice, file=None):
     pass
+
+
+
+
+
 
 def export_cell_to_cif(cell):
     pass
