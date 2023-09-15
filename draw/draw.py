@@ -102,3 +102,6 @@ def draw_frame(ax, basis, c="black", lw=1.5):
     draw_line(ax, _c+_a+_origin, _c+_a+_b+_origin, c=c, lw=lw)
     draw_line(ax, _c+_b+_origin, _c+_b+_a+_origin, c=c, lw=lw)
     draw_line(ax, _c+_origin, _b+_c+_origin, c=c, lw=lw)
+
+def draw_label(ax, vec, lbl):
+    pass

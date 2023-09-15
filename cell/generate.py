@@ -74,8 +74,6 @@ def cell_from_cif(file, type="file"):
     ltt_blocks = ["_cell_length_a", "_cell_length_b", "_cell_length_c",
                    "_cell_angle_alpha", "_cell_angle_beta", "_cell_angle_gamma"]
 
-    atm_blocks = ["_atom_site_fract_x", "_atom_site_fract_y", "_atom_site_fract_z"]
-
     # creating lattice from cif
     _latt_params = []
     for block in ltt_blocks:
@@ -96,7 +94,9 @@ def cell_from_cif(file, type="file"):
         for operator in SPACE_GROUP[cif["_symmetry_int_tables_number"]]:
             # generate atms from symmetry element except inversion
             for atm in _atms:
-                _atmssym.append(ct.generate_from_symmetry(atm, operator))
+                _atm, sym_out = ct.generate_from_symmetry(atm, operator)
+                if sym_out:
+                    _atmssym.append(_atm)
         return cc.cell(_latt, _atmssym)
     else:
         return cc.cell(_latt, _atms)

@@ -33,18 +33,23 @@ def generate_from_symmetry(atom, operator):
 
     Returns
     -------
-    :classl:`atom`
+    :classl:`atom`:
         new atom
+    bool:
+        returns if performed symmetry operation is valid according to operator.id values. Only use atoms for which the
+        returned value is True.
+
 
     """
     _atm = copy(atom)
-    _coords =  _atm.coords
+    _coords = _atm.coords
     if not operator.id:
-        return _atm
+        # this escapes the identity
+        return _atm, True
     else:
         for id in operator.id:
-            if np.all(_atm.coord.vector == id):
-                return _atm
+            if np.all(_atm.coords.vector == id):
+                return _atm, False
         _atm.coords = vector(
             [operator.a*_coords[0]+operator.x0,
              operator.b*_coords[1]+operator.y0,
@@ -52,8 +57,8 @@ def generate_from_symmetry(atom, operator):
              ], _coords.basis
         )
         if _atm.label:
-            _atm.coords = _atm.label + "*"
-        return _atm
+            _atm.label = _atm.label + "*"
+        return _atm, True
 
 
 class symmetry_operator:
