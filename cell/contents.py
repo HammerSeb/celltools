@@ -355,6 +355,13 @@ class cell:
         """
         self._molecules.append(molc)
 
+    def atoms_to_molecule(self):
+        """
+        converts atom list into one molecule in list
+        """
+        self.add_molecule(molecule(self.atoms))
+        self._atoms = []
+
 class super_cell(cell):
     def __init__(self, unit_cell, size):
         self._atoms, self._molecules = [], []

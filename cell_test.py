@@ -5,7 +5,7 @@ from cell.tools import move
 
 from crystals import Crystal
 from draw.draw import make_figure
-from draw.cells import draw_cell
+from draw.cells import draw_supercell
 
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -13,6 +13,10 @@ from matplotlib import pyplot as plt
 
 
 cll = cell_from_cif("testdata/erk.cif")
+cll.atoms_to_molecule()
 
-ax = make_figure("off", (-10,10), (-10,10), (-10,10))
-draw_cell(ax,cll)
+scll = super_cell(cll, (3,3,1))
+f, ax = make_figure("off", (-2,30), (-2,30), (-2,10))
+draw_supercell(ax, scll)
+f.tight_layout()
+f.show()
