@@ -17,6 +17,6 @@ cll.atoms_to_molecule()
 
 scll = super_cell(cll, (3,3,1))
 f, ax = make_figure("off", (-2,30), (-2,30), (-2,10))
-draw_supercell(ax, scll)
+draw_supercell(ax, scll, s=5)
 f.tight_layout()
 f.show()
