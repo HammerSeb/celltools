@@ -1,107 +1,126 @@
 import numpy as np
-from matplotlib import pyplot as plt
+from itertools import chain
 
-from . import vector, basis, standard_basis
-from . import Arrow3D
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
+from pyqtgraph import functions as fn
+from pyqtgraph.Qt import QtCore
 
-# TODO: rewrite draw for pyqtgraph!
+from linalg.basis import basis, vector, standard_basis
 
-def make_figure(axis="on", xlim=(-2,2), ylim=(-2,2), zlim=(-2,2)):
-    """
-    create 3D plot instance
-    :return: figure, axes
-    """
-    f = plt.figure()
-    ax = f.add_subplot(projection="3d")
-    if axis=="off":
-        ax.set_axis_off()
-    elif axis=="on":
-        pass
-    else:
-        raise ValueError("axis must be \"on\" or \"off\"")
-        return
-    ax.set_xlim(*xlim)
-    ax.set_ylim(*ylim)
-    ax.set_zlim(*zlim)
-    f.tight_layout()
-    return f, ax
 
-def draw_point(ax, coord, s, c):
-    """
-    draws point at position given by coords
-    :param ax: axes instance
-    :param coord: vector instance or list/tuple size 3
-    :param s: size for axes.scatter
-    :param c: color for axes.scatter
-    """
-    if isinstance(coord, vector):
-        ax.scatter(*coord.global_coord, color=c, s=s)
-    else:
-        ax.scatter(coord[0], coord[1], coord[2], color=c, s=s)
-
-def draw_line(ax, coord1, coord2, lw, c):
-    """
-    draws line between positions given by coords1 and coords2
-    :param ax: axes instance
-    :param coord1: vector instance or list/tuple size 3
-    :param coord2: vector instance or list/tuple size 3
-    :param lw:  line width for axes.plot
-    :param c: color for axes.scatter
-    """
-    if isinstance(coord1, vector) and isinstance(coord2, vector):
-        x = [coord1.global_coord[0], coord2.global_coord[0]]
-        y = [coord1.global_coord[1], coord2.global_coord[1]]
-        z = [coord1.global_coord[2], coord2.global_coord[2]]
-    elif type(coord1) != type(coord2):
-        raise ValueError("coordinates must be of same type")
-    else:
-        x = [coord1[0], coord2[0]]
-        y = [coord1[1], coord2[1]]
-        z = [coord1[2], coord2[2]]
-    ax.plot(x, y, z, c=c, lw=lw)
-
-def draw_vector(ax, vec, offset=None, c="r", lw=3):
-    """
-    draw vector arrow in direction of vec. Offset specifies origin
-    :param ax: axes instance
-    :param vec: vector instance
-    :param offset: vector instance
-    """
-    if isinstance(offset, np.ndarray):
-        if isinstance(vec,vector):
-            ax.arrow3d(offset[0], offset[1], offset[2], vec.global_coord[0], vec.global_coord[1], vec.global_coord[2],
-                       mutation_scale=20, arrowstyle="-|>", color=c, linewidth=lw)
+class GLPoints(gl.GLScatterPlotItem):
+    def __init__(self, pos=[], size=[], color=[]):
+        if pos:
+            if type(pos[0]) == type(pos[-1]):
+                _pos = []
+                if isinstance(pos[0], vector):
+                    for p in pos:
+                        _pos.append(p.global_coord)
+                else:
+                    for p in pos:
+                        _pos.append(p)
+            else:
+                raise TypeError("position list must contain elements of same type")
+            super().__init__(pos=pos, size=size, color=color, pxMode=False)
         else:
-            raise ValueError("input needs to be instance of vector class")
-    else:
-        if isinstance(vec,vector) and isinstance(offset, vector):
-            ax.arrow3d(offset.global_coord[0], offset.global_coord[1], offset.global_coord[2],
-                       vec.global_coord[0], vec.global_coord[1], vec.global_coord[2],
-                       mutation_scale=20, arrowstyle="-|>", color=c, linewidth=lw)
+            super().__init__(pxMode=False)
+
+    def add_point(self, pos, size, color):
+        _pos, _size, _color = self.pos, self.size, self.color
+        if isinstance(pos, vector):
+            _pos.append(pos.global_coord)
         else:
-            raise ValueError("input needs to be instance of vector class")
+            _pos.append(pos)
 
-def draw_basis(ax, basis, c="grey", lw=3):
-    draw_vector(ax,vector(basis[0]), offset=basis.offset, c=c, lw=lw)
-    draw_vector(ax,vector(basis[1]), offset=basis.offset, c=c, lw=lw)
-    draw_vector(ax,vector(basis[2]), offset=basis.offset, c=c, lw=lw)
+        _size.append(size)
+        _color.append(color)
+        self.setData(pos=_pos, size=_size, color=_color)
+
+class GLLines(gl.GLLinePlotItem):
+    def __init__(self, pos=[]):
+        if pos:
+            if len(pos) % 2 == 0:
+                if type(pos[0]) == type(pos[-1]):
+                    _pos = []
+                    if isinstance(pos[0], vector):
+                        for p in pos:
+                            _pos.append(p.global_coord)
+                    else:
+                        for p in pos:
+                            _pos.append(p)
+                else:
+                    raise TypeError("position list must contain elements of same type")
+            else:
+                raise ValueError("only pairs of coordinates accepted")
+
+            super().__init__(pos, mode="lines")
+
+        super().__init(mode="lines")
+
+    def add_line(self, coord1, coord2, c=None):
+        if isinstance(coord1, vector) and isinstance(coord2, vector):
+            _c1, _c2 = coord1.global_coord, coord2.global_coord
+        elif type(coord1) != type(coord2):
+            raise ValueError("coordinates must be of same type")
+        else:
+            _c1, _c2 = coord1, coord2
+        _pos = self.pos
+        _pos.append(_c1)
+        _pos.append(_c2)
+        self.setData(pos=_pos)
+        if c:
+            self.setData(color=c)
+
+    def set_linewidth(self,lw):
+        self.setData(w=lw)
+
+def make_figure(grid=True, distance=20, title="celltools draw"):
+    """
+    creates a pyqtgraph opengl widget which can be used for 3D drawing
+    Parameters
+    ----------
+    grid
+    distance
+    title
+
+    Returns
+    -------
+    widget
+    """
+    app = pg.mkQApp("CellTools")
+    w = gl.GLViewWidget()
+    w.show()
+    w.setWindowTitle(title)
+    w.setCameraPosition(distance=distance)
+
+    if grid:
+        g = gl.GLGridItem()
+        w.addItem(g)
+
+    return w
 
 
-def draw_frame(ax, basis, c="black", lw=1.5):
+def draw_basis(w, basis, lw=3):
+    _origin = vector(basis.offset)
+    _pairs = list(chain(*[[_origin, vector(v)] for v in basis]))
+    lns = GLLines(pos=_pairs)
+    lns.set_linewidth(lw)
+    lns.setData(color=[[1,0,0,1],[1,0,0,1],[0,1,0,1],[0,1,0,1],[0,0,1,1],[0,0,1,1]])
+    w.addItem(lns)
+    return lns
+
+
+def draw_frame(w, basis, lw=1.5):
     _origin = vector(basis.offset)
     _a, _b, _c = vector(basis.basis[0]), vector(basis.basis[1]), vector(basis.basis[2])
-    draw_line(ax, _origin, _a+_origin, c=c, lw=lw)
-    draw_line(ax, _origin, _b+_origin, c=c, lw=lw)
-    draw_line(ax, _a+_origin, _a+_b+_origin, c=c, lw=lw)
-    draw_line(ax, _b+_origin, _a+_b+_origin, c=c, lw=lw)
-    draw_line(ax, _origin, _c+_origin, c=c, lw=lw)
-    draw_line(ax, _a+_origin, _a+_c+_origin, c=c, lw=lw)
-    draw_line(ax, _b+_origin, _b+_c+_origin, c=c, lw=lw)
-    draw_line(ax, _a+_b+_origin, _a+_b+_c+_origin, c=c, lw=lw)
-    draw_line(ax, _c+_origin, _a+_c+_origin, c=c, lw=lw)
-    draw_line(ax, _c+_a+_origin, _c+_a+_b+_origin, c=c, lw=lw)
-    draw_line(ax, _c+_b+_origin, _c+_b+_a+_origin, c=c, lw=lw)
-    draw_line(ax, _c+_origin, _b+_c+_origin, c=c, lw=lw)
-
-def draw_label(ax, vec, lbl):
-    pass
+    _pairs = list(chain(
+        *[[_origin,_a], [_origin,_b], [_a, _a+_b], [_b, _a+_b], #bottom
+        [_origin, _c], [_a, _a+_c], [_b, _c+_b], [_a+_b, +_a+_b+_c] #sides
+        [_c, _a+_c], [_c,_b+_c], [_a+_c,_a+_b+_c], [_b+_c, _a+_b+_c] #top
+        ]
+    ))
+    lns = GLLines(pos=_pairs)
+    lns.set_linewidth(lw)
+    w.addItem(lns)
+    return lns
