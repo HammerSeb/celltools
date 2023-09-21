@@ -1,22 +1,27 @@
 import numpy as np
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib import pyplot as plt
-from crystals import Crystal
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
+from pyqtgraph import functions as fn
+from pyqtgraph.Qt import QtCore
+from linalg.basis import basis, vector
+from draw.draw import make_figure, GLPoints, draw_basis, draw_frame
+from draw.cells import draw_cell, draw_supercell
+from cell.contents import super_cell
+from cell.generate import cell_from_cif
+from cell.tools import move
 
 
-from linalg.basis import vector, basis, standard_basis
-from draw.draw import make_figure, draw_basis
-from draw.cells import draw_atom, draw_molecule, draw_cell, draw_supercell
+cll = cell_from_cif("testdata/erk.cif")
+cll.atoms_to_molecule()
+spcll = super_cell(cll, (5,3,1))
+move(spcll.molecules[7],vector([0.5,0,0], spcll.lattice))
 
-from cell.contents import atom, molecule, cell, super_cell
-from cell.generate import cell_from_crystal
+w = make_figure()
 
-cryst = Crystal.from_cif("testdata/erk.cif")
-uc = cell_from_crystal(cryst)
+# _ = draw_frame(w, cll.lattice)
+# _ = draw_basis(w, cll.lattice)
+test = draw_supercell(w, spcll, lw=1)
 
+test[7].setData(color=[1,0,0,1])
 
-# f, ax = make_figure(axis="off",xlim=(-2,45),ylim=(-2,45),zlim=(-2,45))
-# suc = super_cell(uc, (3,3,1))
-# draw_supercell(ax, suc)
-# f.show()
+pg.exec()
