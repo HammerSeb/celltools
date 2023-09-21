@@ -1,22 +1,24 @@
 import numpy as np
-import matplotlib
-matplotlib.use('Qt5Agg')
-from matplotlib import pyplot as plt
-from crystals import Crystal
+import pyqtgraph as pg
+import pyqtgraph.opengl as gl
+from pyqtgraph import functions as fn
+from pyqtgraph.Qt import QtCore
+
+from draw.draw import make_figure, GLPoints
 
 
-from linalg.basis import vector, basis, standard_basis
-from draw.draw import make_figure, draw_basis
-from draw.cells import draw_atom, draw_molecule, draw_cell, draw_supercell
 
-from cell.contents import atom, molecule, cell, super_cell
-from cell.generate import cell_from_crystal
-
-cryst = Crystal.from_cif("testdata/erk.cif")
-uc = cell_from_crystal(cryst)
+w = make_figure()
 
 
-# f, ax = make_figure(axis="off",xlim=(-2,45),ylim=(-2,45),zlim=(-2,45))
-# suc = super_cell(uc, (3,3,1))
-# draw_supercell(ax, suc)
-# f.show()
+pos = np.array([[0,0,0], [1,0,0], [0,1,0], [1,1,1]])
+color = np.array([ [1,1,1,1] for i in range(4) ])
+size = np.array([0.4 for i in range(4)])
+
+pts = GLPoints(pos=pos,color=color,size=size)
+w.addItem(pts)
+
+lns = gl.GLLinePlotItem(pos=pos, color=color, mode='lines')
+w.addItem(lns)
+
+pg.exec()
