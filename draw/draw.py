@@ -28,6 +28,10 @@ class GLPoints(gl.GLScatterPlotItem):
 
     def add_point(self, pos, size, color):
         _pos, _size, _color = self.pos, self.size, self.color
+        if not np.any(_pos):
+            _pos, _size, _color = [], [], []
+        else:
+            _pos, _size, _color = _pos.tolist(), _size.tolist(), _color.tolist()
         if isinstance(pos, vector):
             _pos.append(pos.global_coord)
         else:
@@ -35,7 +39,7 @@ class GLPoints(gl.GLScatterPlotItem):
 
         _size.append(size)
         _color.append(color)
-        self.setData(pos=_pos, size=_size, color=_color)
+        self.setData(pos=np.array(_pos), size=np.array(_size), color=np.array(_color))
 
 class GLLines(gl.GLLinePlotItem):
     def __init__(self, pos=[]):
@@ -54,9 +58,9 @@ class GLLines(gl.GLLinePlotItem):
             else:
                 raise ValueError("only pairs of coordinates accepted")
 
-            super().__init__(pos, mode="lines")
-
-        super().__init(mode="lines")
+            super().__init__(pos=_pos, mode="lines")
+        else:
+            super().__init___(mode="lines")
 
     def add_line(self, coord1, coord2, c=None):
         if isinstance(coord1, vector) and isinstance(coord2, vector):
@@ -73,7 +77,7 @@ class GLLines(gl.GLLinePlotItem):
             self.setData(color=c)
 
     def set_linewidth(self,lw):
-        self.setData(w=lw)
+        self.setData(width=lw)
 
 def make_figure(grid=True, distance=20, title="celltools draw"):
     """
@@ -100,24 +104,22 @@ def make_figure(grid=True, distance=20, title="celltools draw"):
 
     return w
 
-
 def draw_basis(w, basis, lw=3):
     _origin = vector(basis.offset)
     _pairs = list(chain(*[[_origin, vector(v)] for v in basis]))
     lns = GLLines(pos=_pairs)
     lns.set_linewidth(lw)
-    lns.setData(color=[[1,0,0,1],[1,0,0,1],[0,1,0,1],[0,1,0,1],[0,0,1,1],[0,0,1,1]])
+    lns.setData(color=np.array([[1,0,0,1],[1,0,0,1],[0,1,0,1],[0,1,0,1],[0,0,1,1],[0,0,1,1]]))
     w.addItem(lns)
     return lns
-
 
 def draw_frame(w, basis, lw=1.5):
     _origin = vector(basis.offset)
     _a, _b, _c = vector(basis.basis[0]), vector(basis.basis[1]), vector(basis.basis[2])
     _pairs = list(chain(
-        *[[_origin,_a], [_origin,_b], [_a, _a+_b], [_b, _a+_b], #bottom
-        [_origin, _c], [_a, _a+_c], [_b, _c+_b], [_a+_b, +_a+_b+_c] #sides
-        [_c, _a+_c], [_c,_b+_c], [_a+_c,_a+_b+_c], [_b+_c, _a+_b+_c] #top
+        *[[_origin,_origin+_a], [_origin,_origin+_b], [_origin+_a, _origin+_a+_b], [_origin+_b, _origin+_a+_b], #bottom
+        [_origin, _origin+_c], [_origin+_a, _origin+_a+_c], [_origin+_b, _origin+_c+_b], [_origin+_a+_b, _origin+_a+_b+_c], #sides
+        [_origin+_c, _origin+_a+_c], [_origin+_c,_origin+_b+_c], [_origin+_a+_c,_origin+_a+_b+_c], [_origin+_b+_c, _origin+_a+_b+_c] #top
         ]
     ))
     lns = GLLines(pos=_pairs)
