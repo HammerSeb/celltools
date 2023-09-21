@@ -201,7 +201,13 @@ class vector:
         return np.sqrt(self.global_coord[0]**2 + self.global_coord[1]**2 + self.global_coord[2]**2)
 
 
+class line:
+    def __init__(self, origin, direction):
+        pass
 
+class plane:
+    def __init__(self, origin, normal):
+        pass
 
 
 
