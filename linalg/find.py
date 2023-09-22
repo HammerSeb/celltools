@@ -1,6 +1,7 @@
 import numpy as np
 from itertools import combinations
 from linalg.basis import basis, vector, standard_basis, line, plane
+from scipy.optimize import minimize
 
 
 
@@ -22,14 +23,11 @@ def _average_vectors(list_of_vectors):
         avg_vec += vec
     return avg_vec*(1/len(list_of_vectors))
 
-
-
-
-
 def average_line(list_of_points):
     """
-    returns average through a given set of points. If all are given in the same basis, the output line will be given in
-    the same basis, otherwise the standard cartesian basis is used.
+    returns average line through a given set of points in the standard basis. The avergage line is determined by a
+    least square minimization of the distance of all points to the line.
+
     Parameters
     ----------
     list_of_points: list of vectors
@@ -41,18 +39,39 @@ def average_line(list_of_points):
         average line through points
 
     """
-    point_pairs = list(combinations(list_of_points, 2))
-    _same_basis, _origin, _direction = [], [], []
-    for pair in point_pairs:
-        _same_basis.append(pair[0].basis == pair[1].basis)
+    def _minimize(x, pnts):
+        """
+        minimization function: giving the sum of all distances squared to the line defined by x
+        Parameters
+        ----------
+        x: nd.array
+            parameters defining the line's origin and direction [o1, o2, o3, d1, d2, d3]
+        pnts: list of vectors
+              list of :class:`vector`, not necessarly the same basis
 
-    if np.all(_same_basis) == True:
-        for pair in point_pairs:
-            _origin.append(pair[0])
-            _direction.append(pair[1]-pair[0])
-        return line(_average_vectors(_origin), _average_vectors(_direction))
-    else:
-        for pair in point_pairs:
-            _origin.append(vector(pair[0].global_coord))
-            _direction.append(vector(pair[1].global_coord)-vector(pair[0].global_coord))
-        return line(_average_vectors(_origin), _average_vectors(_direction))
+        Returns
+        -------
+            float
+                sum of squared distances to line
+        """
+        _d = []
+        _line = line(vector([x[0], x[1], x[2]]), vector([x[3], x[4], x[5]]))
+        for pnt in pnts:
+            _d.append(_line.distance(pnt))
+
+        return np.sum(np.square(np.array(_d)))
+
+    # estimating starting values as averages
+    point_pairs = list(combinations(list_of_points, 2))
+    _origin, _direction = [], []
+    for pair in point_pairs:
+        _origin.append(vector(pair[0].global_coord))
+        _direction.append(vector(pair[1].global_coord)-vector(pair[0].global_coord))
+    x0 = np.array([_average_vectors(_origin).global_coord, _average_vectors(_direction).global_coord]).flatten()
+
+    res = minimize(_minimize, x0, args=(list_of_points))
+
+    return line(vector([res.x[0],res.x[1],res.x[2]]),
+                vector([res.x[3],res.x[4],res.x[5]])*(1/vector([res.x[3],res.x[4],res.x[5]]).abs))
+
+

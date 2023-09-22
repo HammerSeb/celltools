@@ -126,3 +126,15 @@ def draw_frame(w, basis, lw=1.5):
     lns.set_linewidth(lw)
     w.addItem(lns)
     return lns
+
+
+def draw_line(w, ln, range = (-1,1), lw=1.5, c=[1,1,1,1]):
+    _pos = np.array([ln.point_on_line(range[0]).global_coord, ln.point_on_line(range[1]).global_coord])
+    _line = gl.GLLinePlotItem(pos=_pos, width=lw, color=c)
+    w.addItem(_line)
+
+def draw_plane(w, pln, range=[(0,10),(0,10)], c=[1,0,0,0.8]):
+    _x, _y = np.linspace(range[0][0], range[0][1], 20), np.linspace(range[0][0], range[0][1], 20)
+    _z = (pln.parametric_form[3] - pln.parametric_form[0]*_x.reshape(20,1) - pln.parametric_form[1]*_y.reshape(1,20))/pln.parametric_form[3]
+    _plane = gl.GLSurfacePlotItem(x=_x, y=_y, z=_z, color=c)
+    w.addItem(_plane)

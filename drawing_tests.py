@@ -1,27 +1,22 @@
 import numpy as np
 import pyqtgraph as pg
-import pyqtgraph.opengl as gl
-from pyqtgraph import functions as fn
-from pyqtgraph.Qt import QtCore
-from linalg.basis import basis, vector
-from draw.draw import make_figure, GLPoints, draw_basis, draw_frame
-from draw.cells import draw_cell, draw_supercell
-from cell.contents import super_cell
+from draw.draw import make_figure, draw_line, draw_plane
+from draw.cells import draw_cell
 from cell.generate import cell_from_cif
-from cell.tools import move
+from linalg.find import average_line
+from linalg.basis import plane, vector
 
 
 cll = cell_from_cif("testdata/erk.cif")
 cll.atoms_to_molecule()
-spcll = super_cell(cll, (5,3,1))
-move(spcll.molecules[7],vector([0.5,0,0], spcll.lattice))
+
+molc_coords = [atm.coords for atm in cll.molecules[0].atoms]
+ln = average_line(molc_coords)
+pln = plane(vector(cll.lattice[1])*0.5, vector(cll.lattice[0]))
 
 w = make_figure()
 
-# _ = draw_frame(w, cll.lattice)
-# _ = draw_basis(w, cll.lattice)
-test = draw_supercell(w, spcll, lw=1)
-
-test[7].setData(color=[1,0,0,1])
-
+_cll = draw_cell(w, cll)
+draw_line(w, ln, range=[-10, 10], lw=5, c=[1, 0, 0, 1])
+draw_plane(w, pln)
 pg.exec()

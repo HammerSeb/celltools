@@ -1,22 +1,12 @@
-from linalg.basis import vector, basis, standard_basis
+from linalg.basis import vector, basis, standard_basis, line, plane
 from linalg.transformations import basis_transformation
 from linalg.find import average_line
 
-# v1 = [1, 0, 0]
-# v2 = [0, 1, -1]
-# v3 = [1, 0, 1]
-#
-# b = basis(v1,v2,v3)
-#
-# trans = basis_transformation(b, standard_basis)
-#
-# a = vector([1,1,0], b)
-# c = vector([0,1,1], b)
-#
-# a2 = trans.transform(a)
-# x = vector([1,1,-1], standard_basis)
-# a3 = trans.inv_transform(x)
-#
-# print(a.global_coord)
-# print(a2.vector)
-# print(a3.vector, a3.global_coord)
+from cell.generate import cell_from_cif
+
+
+cll = cell_from_cif("testdata/erk.cif")
+cll.atoms_to_molecule()
+
+molc_coords = [atm.coords for atm in cll.molecules[0].atoms]
+ln = average_line(molc_coords)

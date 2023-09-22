@@ -24,6 +24,14 @@ def check_linear_independence():
         return new_function
     return check_accepts
 
+
+def parallel(vec1, vec2):
+    """checks if two vectors are parallel in standard coordinates"""
+    if abs(np.dot(vec1.global_coord, vec2.global_coord)) == vec1.abs_global*vec2.abs_global:
+        return True
+    else:
+        False
+
 class basis:
     @check_linear_independence()
     def __init__(self, v1, v2, v3, offset=np.zeros((3,))):
@@ -200,14 +208,129 @@ class vector:
     def abs_global(self):
         return np.sqrt(self.global_coord[0]**2 + self.global_coord[1]**2 + self.global_coord[2]**2)
 
+    def parallel(self, other):
+        if parallel(self, other):
+            return True
+        else:
+            False
 
 class line:
     def __init__(self, origin, direction):
-        pass
+        if origin.basis == direction.basis:
+            self._origin = origin
+            self._direction = direction
+            self._basis = self.origin.basis
+        else:
+            raise LinearAlgebraError("input vectors need to be expressed in the same basis")
+
+    def __repr__(self):
+        return f"< line: {self.origin} + k*{self.direction} >"
+
+    def __eq__(self, other):
+        if isinstance(other, line):
+            if self.on_line(other.origin) and self.parallel(other):
+                return True
+            else:
+                return False
+        else:
+            raise ValueError("must be compared to line instance")
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
+    def direction(self):
+        return self._direction
+
+    def on_line(self, point):
+        if  ((point.global_coord[0] - self.origin.global_coord[0]) / self.direction.global_coord[0]) == \
+            ((point.global_coord[1] - self.origin.global_coord[1]) / self.direction.global_coord[1]) and \
+            ((point.global_coord[1] - self.origin.global_coord[1]) / self.direction.global_coord[1]) == \
+            ((point.global_coord[2] - self.origin.global_coord[2]) / self.direction.global_coord[2]) and \
+            ((point.global_coord[2] - self.origin.global_coord[2]) / self.direction.global_coord[2]) == \
+            ((point.global_coord[0] - self.origin.global_coord[0]) / self.direction.global_coord[0]):
+            return True
+        else:
+            return False
+
+    def parallel(self, line):
+        if parallel(self.direction, line.direction):
+            return True
+        else:
+            False
+
+    def distance(self, point):
+        """
+        distance from line to point in standard basis
+        formula adapted from https://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
+        Parameters
+        ----------
+        point: :class:`vector`
+
+        Returns
+        -------
+            float
+        """
+        return (( vector(self.origin.global_coord-point.global_coord).abs**2 * self.direction.abs_global**2
+                  - np.dot((self.origin.global_coord-point.global_coord), self.direction.global_coord)**2)
+                / self.direction.abs_global**2)
+
+    def point_on_line(self,k):
+        """
+        returns a point which is given by self.origin + k * self.direction
+        Parameters
+        ----------
+        k: float
+
+        Returns
+        -------
+            :class:`vector`
+        """
+        return self.origin + k * self.direction
 
 class plane:
     def __init__(self, origin, normal):
-        pass
+        if origin.basis == normal.basis:
+            self._origin = origin
+            self._normal = normal
+            self._basis = self.origin.basis
+        else:
+            raise LinearAlgebraError("input vectors need to be expressed in the same basis")
+
+    def __repr__(self):
+        return (f"< plane: {self.parametric_form[0]:.2f}*x + {self.parametric_form[1]:.2f}*y "
+                f"+ {self.parametric_form[2]:.2f}*z = {self.parametric_form[3]} >")
+
+    @property
+    def normal(self):
+        return self._normal
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
+    def parametric_form(self):
+        """
+        gives an array containing the for parameters of the normalized parametric form n1*x + n2*y +n3*z = d
+        in the standard basis. ni are the coordinates of the normalized normal vector on the plane
+
+        Returns
+        -------
+            nd.array
+                [n1, n2, n3, d]
+        """
+        return np.array([self.normal.global_coord[0]/self.normal.abs_global,
+                         self.normal.global_coord[1]/self.normal.abs_global,
+                         self.normal.global_coord[2]/self.normal.abs_global,
+                         np.dot(self.normal.global_coord//self.normal.abs_global, self.origin.global_coord)])
+
+    def on_plane(self, point):
+        if np.dot(self.normal.global_coord, point.global_coord) == self.parametric_form[3]:
+            return True
+        else:
+            return False
 
 
 
