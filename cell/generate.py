@@ -1,4 +1,5 @@
 import re
+from itertools import combinations
 import numpy as np
 from numpy import deg2rad, cos, sin, sqrt
 import cell.contents as cc
@@ -8,9 +9,30 @@ from linalg.basis import basis, vector
 
 from CifFile import ReadCif
 
-# TODO: atom list from cif, lattice from cif, unit cell from cif
-# TODO: function to generate unit_cell from Crystals object
+def auto_bonds(atm_list, rmin=1, rmax=2):
+    """
+    generates list of bonds from given atom list. A bond between two atoms is generated if the distances of the two
+    atoms lies between rmin and rmax
+    Parameters
+    ----------
+    atm_list: list of :class:`atom`
+        atom list from which bonds are created
+    rmin: float
+        minimum distance between two atoms to create a bond
+    rmax: float
+        maximum distance between two atoms to create a bond
 
+    Returns
+    -------
+        list of :class:`bond`
+    """
+    bonds = []
+    atm_pairs = combinations(atm_list, 2)
+    for pair in atm_pairs:
+        _dist = (pair[0].coords - pair[1].coords).abs_global
+        if rmin < _dist <rmax:
+            bonds.append(cc.bond(pair[0], pair[1]))
+    return bonds
 
 def lattice_from_cell_parameters(a, b, c, alpha, beta, gamma):
     """
@@ -51,7 +73,6 @@ def cell_from_crystal(cryst):
     for atm in cryst.atoms:
         atms.append(cc.atom(atm.element, vector(atm.coords_fractional, latt)))
     return cc.cell(latt,atms)
-
 
 def cell_from_cif(file, type="file"):
     """
@@ -101,8 +122,6 @@ def cell_from_cif(file, type="file"):
     else:
         return cc.cell(_latt, _atms)
 
-
-
 def _export_atom_list_to_cif(atoms, file=None):
     """
     atom list is formatted in cif format and written to stdout or file
@@ -122,14 +141,11 @@ def _export_atom_list_to_cif(atoms, file=None):
     """
 
 def _export_lattice_to_cif(lattice, file=None):
+    #TODO
     pass
 
-
-
-
-
-
 def export_cell_to_cif(cell):
+    #TODO
     pass
 
 

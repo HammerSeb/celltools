@@ -10,6 +10,7 @@ from linalg.basis import vector, basis, standard_basis
 from linalg.basis import LinearAlgebraError
 
 from cell.tools import move
+from cell.generate import auto_bonds
 
 def auto_label_atoms(atms):
     """
@@ -178,7 +179,7 @@ class bond:
         atm2: atom instance with position in same basis
         """
         if isinstance(atm1, atom) and isinstance(atm2, atom):
-            if atm1.coords.basis.basis == atm2.coords.basis.basis:
+            if atm1.coords.basis == atm2.coords.basis:
                 self._atm1 = atm1
                 self._atm2 = atm2
             else:
@@ -186,9 +187,16 @@ class bond:
         else:
             raise ValueError("input needs to be instance of atom.")
 
+    def __repr__(self):
+        return f"< Bond: [{self._atm1.label}; {self._atm2.label}] >"
+
     @property
     def length(self):
-        return (self._atm1.coords + self._atm2.coords).abs
+        return (self._atm1.coords + self._atm2.coords).abs_global
+
+    @property
+    def bond(self):
+        return (self._atm1, self._atm2)
 
 class molecule:
     def __init__(self, atms, bonds=None, label=None):
@@ -263,6 +271,9 @@ class molecule:
             self._bonds.append(bnd)
         else:
             self._bonds.append(bond(bnd[1], bnd[1]))
+
+    def auto_bonds(self, rmin=1, rmax=2):
+        self._bonds = auto_bonds(self.atoms, rmin=rmin, rmax=rmax)
 
 class lattice(basis):
     def __init__(self, Basis):

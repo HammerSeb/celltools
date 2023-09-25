@@ -60,7 +60,6 @@ def generate_from_symmetry(atom, operator):
             _atm.label = _atm.label + "*"
         return _atm, True
 
-
 class symmetry_operator:
     """
     class specifing a symmetry operation in a crystal lattice to generate full basis from smallest possible basis

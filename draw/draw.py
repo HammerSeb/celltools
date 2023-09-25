@@ -133,8 +133,8 @@ def draw_line(w, ln, range = (-1,1), lw=1.5, c=[1,1,1,1]):
     _line = gl.GLLinePlotItem(pos=_pos, width=lw, color=c)
     w.addItem(_line)
 
-def draw_plane(w, pln, range=[(0,10),(0,10)], c=[1,0,0,0.8]):
+def draw_plane(w, pln, range=[(0,10),(0,10)], c=[1,0,0,0.5]):
     _x, _y = np.linspace(range[0][0], range[0][1], 20), np.linspace(range[0][0], range[0][1], 20)
-    _z = (pln.parametric_form[3] - pln.parametric_form[0]*_x.reshape(20,1) - pln.parametric_form[1]*_y.reshape(1,20))/pln.parametric_form[3]
+    _z = (pln.parametric_form[3] - pln.parametric_form[0]*_x.reshape(20,1) - pln.parametric_form[1]*_y.reshape(1,20))/pln.parametric_form[2]
     _plane = gl.GLSurfacePlotItem(x=_x, y=_y, z=_z, color=c)
     w.addItem(_plane)
