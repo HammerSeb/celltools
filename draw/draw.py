@@ -60,7 +60,7 @@ class GLLines(gl.GLLinePlotItem):
 
             super().__init__(pos=_pos, mode="lines")
         else:
-            super().__init___(mode="lines")
+            super().__init__( mode="lines")
 
     def add_line(self, coord1, coord2, c=None):
         if isinstance(coord1, vector) and isinstance(coord2, vector):
@@ -69,12 +69,20 @@ class GLLines(gl.GLLinePlotItem):
             raise ValueError("coordinates must be of same type")
         else:
             _c1, _c2 = coord1, coord2
-        _pos = self.pos
+
+        _pos, _color = self.pos, self.color
+        if not np.any(_pos):
+            _pos, _color = [], []
+        else:
+            _pos, _color = _pos.tolist(), _color.tolist()
+
         _pos.append(_c1)
         _pos.append(_c2)
-        self.setData(pos=_pos)
+        self.setData(pos=np.array(_pos))
         if c:
-            self.setData(color=c)
+            _color.append(c)
+            _color.append(c)
+            self.setData(color=np.array(_color))
 
     def set_linewidth(self,lw):
         self.setData(width=lw)
@@ -134,6 +142,7 @@ def draw_line(w, ln, range = (-1,1), lw=1.5, c=[1,1,1,1]):
     w.addItem(_line)
 
 def draw_plane(w, pln, range=[(0,10),(0,10)], c=[1,0,0,0.5]):
+    """This only works for planes that are not parallel to xz or yz... - must be done with a mesh plot"""
     _x, _y = np.linspace(range[0][0], range[0][1], 20), np.linspace(range[0][0], range[0][1], 20)
     _z = (pln.parametric_form[3] - pln.parametric_form[0]*_x.reshape(20,1) - pln.parametric_form[1]*_y.reshape(1,20))/pln.parametric_form[2]
     _plane = gl.GLSurfacePlotItem(x=_x, y=_y, z=_z, color=c)

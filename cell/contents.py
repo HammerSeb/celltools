@@ -1,4 +1,4 @@
-from itertools import product
+from itertools import product, combinations
 from copy import copy, deepcopy
 import numpy as np
 from crystals.atom import Element
@@ -10,7 +10,6 @@ from linalg.basis import vector, basis, standard_basis
 from linalg.basis import LinearAlgebraError
 
 from cell.tools import move
-from cell.generate import auto_bonds
 
 def auto_label_atoms(atms):
     """
@@ -93,6 +92,31 @@ def chemical_formula(atms):
         chem_form += e + str(n)
 
     return chem_form
+
+def auto_bonds(atm_list, rmin=1, rmax=2):
+    """
+    generates list of bonds from given atom list. A bond between two atoms is generated if the distances of the two
+    atoms lies between rmin and rmax
+    Parameters
+    ----------
+    atm_list: list of :class:`atom`
+        atom list from which bonds are created
+    rmin: float
+        minimum distance between two atoms to create a bond
+    rmax: float
+        maximum distance between two atoms to create a bond
+
+    Returns
+    -------
+        list of :class:`bond`
+    """
+    bonds = []
+    atm_pairs = combinations(atm_list, 2)
+    for pair in atm_pairs:
+        _dist = (pair[0].coords - pair[1].coords).abs_global
+        if rmin < _dist <rmax:
+            bonds.append(bond(pair[0], pair[1]))
+    return bonds
 
 class atom(Element):
     """
@@ -192,7 +216,7 @@ class bond:
 
     @property
     def length(self):
-        return (self._atm1.coords + self._atm2.coords).abs_global
+        return (self._atm1.coords - self._atm2.coords).abs_global
 
     @property
     def bond(self):

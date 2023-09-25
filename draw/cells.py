@@ -7,9 +7,18 @@ from linalg.basis import basis
 def _add_atom(GLPts,atm):
     GLPts.add_point(atm.coords, ELEM_TO_SIZE(atm.element), ELEM_TO_COLOR(atm.element))
 
-def _add_molecule(GLPts, molc):
+def _add_molecule(GLPts, molc, GLLns=None):
     for atm in molc.atoms:
         GLPts.add_point(atm.coords, ELEM_TO_SIZE(atm.element), ELEM_TO_COLOR(atm.element))
+    if GLLns:
+        for bond in molc.bonds:
+            if bond.bond[0].atomic_number > bond.bond[1].atomic_number:
+                color = ELEM_TO_COLOR(bond.bond[0].element)
+            else:
+                color = ELEM_TO_COLOR(bond.bond[1].element)
+            GLLns.add_line(bond.bond[0].coords, bond.bond[1].coords, c=color)
+
+
 
 def draw_cell(w, cell, lw=3):
     _frame = draw_frame(w, cell.lattice, lw=lw)
@@ -22,7 +31,11 @@ def draw_cell(w, cell, lw=3):
     if cell.molecules:
         for molc in cell.molecules:
             _content.append(GLPoints())
-            _add_molecule(_content[-1], molc)
+            if molc.bonds:
+                _content.append(GLLines())
+                _add_molecule(_content[-2], molc, GLLns=_content[-1])
+            else:
+                _add_molecule(_content[-1], molc)
     for cnt in _content:
         w.addItem(cnt)
     return _content
@@ -40,18 +53,11 @@ def draw_supercell(w, supercell, lw=3):
     if supercell.molecules:
         for molc in supercell.molecules:
             _content.append(GLPoints())
-            _add_molecule(_content[-1], molc)
+            if molc.bonds:
+                _content.append(GLLines())
+                _add_molecule(_content[-2], molc, GLLns=_content[-1])
+            else:
+                _add_molecule(_content[-1], molc)
     for cnt in _content:
         w.addItem(cnt)
     return _content
-
-#
-# def draw_supercell(ax, supercell, c="black", lw=1.5, s=100):
-#     for trans_vec in supercell._translation_vector:
-#         _base = basis(*supercell.lattice.basis, offset=trans_vec.global_coord)
-#         draw_frame(ax, _base, c=c, lw=lw)
-#     draw_basis(ax, supercell.lattice)
-#     for atm in supercell.atoms:
-#         draw_atom(ax, atm, s=s)
-#     for molc in supercell.molecules:
-#         draw_molecule(ax, molc, s=s)
