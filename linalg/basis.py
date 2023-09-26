@@ -98,7 +98,7 @@ class basis:
             raise ValueError("order must be given in integers of 1,2 and 3 only")
             return
         else:
-            self.basis = np.array([self.basis[order[0]-1], self.basis[order[1]-1], self.basis[order[2]-1]])
+            self._basis = np.array([self._basis[order[0]-1], self._basis[order[1]-1], self._basis[order[2]-1]])
 
     def __getitem__(self, index):
         if not isinstance(index, int):
@@ -294,7 +294,7 @@ class plane:
         if origin.basis == normal.basis:
             self._origin = origin
             self._normal = normal
-            self._basis = self.origin.basis
+            self._basis = self._define_basis()
         else:
             raise LinearAlgebraError("input vectors need to be expressed in the same basis")
 
@@ -309,6 +309,17 @@ class plane:
     @property
     def origin(self):
         return self._origin
+
+    @property
+    def basis(self):
+        return self._basis
+
+    @basis.setter
+    def basis(self, basis):
+        if isinstance(basis,basis):
+            self._basis = basis
+        else:
+            raise ValueError("input needs to be of type basis")
 
     @property
     def parametric_form(self):
@@ -331,6 +342,58 @@ class plane:
             return True
         else:
             return False
+
+    def _define_basis(self):
+        """
+        defines orthonormal basis of the plane centered at origin
+            TODO: normal vector must always be 3rd basis vector
+        """
+        # parallel to xy, xz, yz plane
+        if np.count_nonzero(self.parametric_form[:-1]==0) == 2:
+            if not self.parametric_form[0]==0:
+                self._basis = standard_basis.permute((2,3,1))
+            if not self.parametric_form[1]==0:
+                self._basis = standard_basis.permute((1,3,2))
+            if not self.parametric_form[2]==0:
+                self._basis = standard_basis
+
+            self._basis.offset(self.origin.global_coord)
+        # parallel to x,y or z axis
+        if np.count_nonzero(self.parametric_form[:-1]==0) == 1:
+            if self.parametric_form[0]==0: #x-axis
+                self._basis = basis(
+                 [0,np.sqrt(2),np.sqrt(2)], [0,-1*np.sqrt(2),np.sqrt(2)], [,1,0,0]
+                )
+
+            elif self.parametric_form[1]==0: #y-axis
+                self._basis = basis(
+                    [np.sqrt(2),0,np.sqrt(2)], [np.sqrt(2),0,-1*np.sqrt(2)], [0,1,0]
+                )
+
+            elif self.parametric_form[2]==0: #z-axis
+                self._basis = basis(
+                    [np.sqrt(2),np.sqrt(2),0], [-1*np.sqrt(2), np.sqrt(2), 0], [0,0,1],
+                )
+
+            self._basis.offset(self.origin.global_coord)
+            #fully free axis
+        else:
+            _origin = vector(self.origin.global_choord)
+            _x_intsec = vector([self.parametric_form[3]/self.parametric_form[0]],0,0)
+            _y_intsec = vector([0,self.parametric_form[3]/self.parametric_form[1]],0)
+            _basis3 = self.normal.global_coord/self.normal.abs_global
+            if not _origin == _x_intsec:
+                _basis1 = ((_x_intsec - _origin)* 1 / vector(_x_intsec - _origin).abs_global).global_coord
+            else:
+                _basis1 = ((_y_intsec - _origin) * 1 / vector(_y_intsec - _origin).abs_global).global_coord
+
+            _basis2 = (vector(np.cross(_basis1, _basis3))/vector(np.cross(_basis1, _basis3)).abs_global).global_coord
+
+            self._basis = basis(_basis1, _basis2, _basis3)
+            self.basis.offset(self.origin.global_coord)
+
+
+
 
 
 
