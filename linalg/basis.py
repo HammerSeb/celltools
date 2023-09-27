@@ -1,3 +1,4 @@
+from copy import copy
 import numpy as np
 from numpy.linalg import det
 
@@ -44,7 +45,7 @@ class basis:
         """
         self._basis = np.array([v1, v2, v3])
 
-        self.offset = offset
+        self._offset = offset
 
     def __repr__(self):
         return f'<basis {self.basis[0]}, {self.basis[1]}, {self.basis[2]}>'
@@ -66,6 +67,13 @@ class basis:
     def offset(self):
         return self._offset
 
+    @offset.setter
+    def offset(self, offset):
+        if isinstance(offset, np.ndarray):
+            self._offset = offset
+        else:
+            self._offset = np.array(offset)
+
     @property
     def v1(self):
         """return v1 in global coordinates"""
@@ -80,13 +88,6 @@ class basis:
     def v3(self):
         """return v3 in global coordinates"""
         return self.basis[2] + self.offset
-
-    @offset.setter
-    def offset(self,offset):
-        if isinstance(offset, np.ndarray):
-            self._offset = offset
-        else:
-            self._offset = np.array(offset)
 
     def permute(self, order):
         """
@@ -177,7 +178,7 @@ class vector:
 
     def __eq__(self, other):
         if isinstance(other, vector):
-            return self.global_coord == other.global_coord
+            return np.all(self.global_coord == other.global_coord)
         else:
             raise TypeError("must be compared to vector instance")
 
@@ -294,7 +295,7 @@ class plane:
         if origin.basis == normal.basis:
             self._origin = origin
             self._normal = normal
-            self._basis = self._define_basis()
+            self._define_basis()
         else:
             raise LinearAlgebraError("input vectors need to be expressed in the same basis")
 
@@ -350,19 +351,19 @@ class plane:
         """
         # parallel to xy, xz, yz plane
         if np.count_nonzero(self.parametric_form[:-1]==0) == 2:
+            self._basis = copy(standard_basis)
             if not self.parametric_form[0]==0:
-                self._basis = standard_basis.permute((2,3,1))
+                self._basis.permute((2,3,1))
             if not self.parametric_form[1]==0:
-                self._basis = standard_basis.permute((1,3,2))
-            if not self.parametric_form[2]==0:
-                self._basis = standard_basis
+                self._basis.permute((1,3,2))
 
-            self._basis.offset(self.origin.global_coord)
+
+            self._basis.offset = self.origin.global_coord
         # parallel to x,y or z axis
-        if np.count_nonzero(self.parametric_form[:-1]==0) == 1:
+        elif np.count_nonzero(self.parametric_form[:-1]==0) == 1:
             if self.parametric_form[0]==0: #x-axis
                 self._basis = basis(
-                 [0,np.sqrt(2),np.sqrt(2)], [0,-1*np.sqrt(2),np.sqrt(2)], [,1,0,0]
+                 [0,np.sqrt(2),np.sqrt(2)], [0,-1*np.sqrt(2),np.sqrt(2)], [1,0,0]
                 )
 
             elif self.parametric_form[1]==0: #y-axis
@@ -375,25 +376,19 @@ class plane:
                     [np.sqrt(2),np.sqrt(2),0], [-1*np.sqrt(2), np.sqrt(2), 0], [0,0,1],
                 )
 
-            self._basis.offset(self.origin.global_coord)
-            #fully free axis
+            self._basis.offset = self.origin.global_coord
+            #plane with no restrictions
         else:
-            _origin = vector(self.origin.global_choord)
-            _x_intsec = vector([self.parametric_form[3]/self.parametric_form[0]],0,0)
-            _y_intsec = vector([0,self.parametric_form[3]/self.parametric_form[1]],0)
+            _origin = vector(self.origin.global_coord)
+            _x_intsec = vector([self.parametric_form[3]/self.parametric_form[0],0,0])
+            _y_intsec = vector([0,self.parametric_form[3]/self.parametric_form[1],0])
             _basis3 = self.normal.global_coord/self.normal.abs_global
             if not _origin == _x_intsec:
-                _basis1 = ((_x_intsec - _origin)* 1 / vector(_x_intsec - _origin).abs_global).global_coord
+                _basis1 = ((_x_intsec - _origin)* (1 / vector(_x_intsec - _origin).abs_global)).global_coord
             else:
-                _basis1 = ((_y_intsec - _origin) * 1 / vector(_y_intsec - _origin).abs_global).global_coord
+                _basis1 = ((_y_intsec - _origin) * (1 / vector(_y_intsec - _origin).abs_global)).global_coord
 
-            _basis2 = (vector(np.cross(_basis1, _basis3))/vector(np.cross(_basis1, _basis3)).abs_global).global_coord
+            _basis2 = (vector(np.cross(_basis1, _basis3))*(1/vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
 
             self._basis = basis(_basis1, _basis2, _basis3)
-            self.basis.offset(self.origin.global_coord)
-
-
-
-
-
-
+            self.basis.offset = self.origin.global_coord
