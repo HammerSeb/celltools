@@ -75,3 +75,51 @@ def average_line(list_of_points):
                 vector([res.x[3],res.x[4],res.x[5]])*(1/vector([res.x[3],res.x[4],res.x[5]]).abs))
 
 
+def average_plane(list_of_points):
+    """
+      returns average plane through a given set of points in the standard basis. The average plane is determined by a
+      least square minimization of the distance of all points to the line.
+
+      Parameters
+      ----------
+      list_of_points: list of vectors
+          list of :class:`vector`, not necessarly the same basis
+
+      Returns
+      -------
+      avg_plane: :class:`plane`
+          average plane through points
+
+      """
+
+    def _minimize(x, pnts):
+        """
+        minimization function: giving the sum of all distances squared to the line defined by x
+        Parameters
+        ----------
+        x: nd.array
+            parameters defining the line's origin and direction [o1, o2, o3, d1, d2, d3]
+        pnts: list of vectors
+              list of :class:`vector`, not necessarly the same basis
+
+        Returns
+        -------
+            float
+                sum of squared distances to line
+        """
+        _d = []
+        _plane = plane(vector([x[0], x[1], x[2]]), vector([x[3], x[4], x[5]]))
+        for pnt in pnts:
+            _d.append(_plane.distance(pnt))
+
+        return np.sum(np.square(np.array(_d)))
+
+    # estimating starting values from average
+    _avg_vec = _average_vectors(list_of_points)
+    _origin0 = _avg_vec.global_coord
+    _norm0 = np.cross((list_of_points[0]-_avg_vec).global_coord,(list_of_points[-1]-_avg_vec).global_coord)
+    x0 = np.array([_origin0, _norm0]).flatten()
+    res = minimize(_minimize, x0, args=(list_of_points))
+
+    return plane(vector([res.x[0], res.x[1], res.x[2]]),
+                 vector([res.x[3], res.x[4], res.x[5]])*(1/vector([res.x[3], res.x[4], res.x[5]]).abs_global))

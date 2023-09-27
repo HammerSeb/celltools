@@ -344,6 +344,22 @@ class plane:
         else:
             return False
 
+    def distance(self, point):
+        """
+        returns the distance from the plane to a given point
+        formula adapted from: https://www.cuemath.com/geometry/distance-between-point-and-plane/
+
+        Parameters
+        ----------
+        point: :class:`vector`
+
+        Returns
+        -------
+            float
+        """
+        return (abs((np.sum(self.parametric_form[:3] * point.global_coord) - self.parametric_form[3]))
+                / self.normal.abs_global)
+
     def _define_basis(self):
         """
         defines orthonormal basis of the plane centered at origin
