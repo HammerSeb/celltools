@@ -1,12 +1,14 @@
+from numpy import deg2rad
+
 from linalg.basis import vector, basis, standard_basis, line, plane
-from linalg.transformations import basis_transformation
-from linalg.find import average_line
-
-from cell.generate import cell_from_cif
+from linalg.transformations import basis_transformation, rotation
+from linalg.find import average_line, average_plane
 
 
-cll = cell_from_cif("testdata/erk.cif")
-cll.atoms_to_molecule()
+base = basis([0.5,0,0], [0,0.5,0], [0,0,0.5])
+axis = vector([1,1,1], base)
 
-molc_coords = [atm.coords for atm in cll.molecules[0].atoms]
-ln = average_line(molc_coords)
+rot = rotation(deg2rad(120), axis)
+
+pnt = vector([1,0,0], base)
+new_pnt = rot.rotate(pnt)
