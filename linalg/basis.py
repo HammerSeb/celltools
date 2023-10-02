@@ -336,7 +336,7 @@ class plane:
         return np.array([self.normal.global_coord[0]/self.normal.abs_global,
                          self.normal.global_coord[1]/self.normal.abs_global,
                          self.normal.global_coord[2]/self.normal.abs_global,
-                         np.dot(self.normal.global_coord//self.normal.abs_global, self.origin.global_coord)])
+                         np.dot(self.normal.global_coord/self.normal.abs_global, self.origin.global_coord)])
 
     def on_plane(self, point):
         if np.dot(self.normal.global_coord, point.global_coord) == self.parametric_form[3]:
@@ -358,7 +358,7 @@ class plane:
             float
         """
         return (abs((np.sum(self.parametric_form[:3] * point.global_coord) - self.parametric_form[3]))
-                / self.normal.abs_global)
+                / np.sqrt(np.sum(np.square(self.parametric_form[:3]))))
 
     def _define_basis(self):
         """
