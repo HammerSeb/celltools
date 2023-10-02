@@ -244,6 +244,10 @@ class line:
     def direction(self):
         return self._direction
 
+    @property
+    def basis(self):
+        return self._basis
+
     def on_line(self, point):
         if  ((point.global_coord[0] - self.origin.global_coord[0]) / self.direction.global_coord[0]) == \
             ((point.global_coord[1] - self.origin.global_coord[1]) / self.direction.global_coord[1]) and \

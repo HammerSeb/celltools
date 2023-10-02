@@ -1,9 +1,13 @@
+import typing
+from typing import Union, List, Type
 import numpy as np
+from numpy import deg2rad
 from copy import copy
 import cell.contents as cc
-from linalg.basis import basis, vector
-from linalg.transformations import basis_transformation
-#TODO: function to generate avergage plane through a list of atoms
+from linalg.basis import basis, vector, line, standard_basis
+from linalg.transformations import basis_transformation, rotation
+
+# TODO: function to generate avergage plane through a list of atoms
 
 def move(obj, vec):
     """
@@ -21,6 +25,48 @@ def move(obj, vec):
         to_mol_basis = basis_transformation(obj.atoms[0].coords.basis, vec.basis)
         for atm in obj.atoms:
             atm.coords = atm.coords + to_mol_basis.inv_transform(vec)
+
+
+def rotate(obj, axis: line, angle: float, mode="deg") -> None:
+    """
+    rotates object counterclockwise around line about specified angle
+    Parameters
+    ----------
+    obj: list of :class:`atom`, :class:`molecule`
+        objects to be rotated
+    axis: :class:linalg.line
+        axis around object is rotated
+    angle: float
+        rotation angle in degree or radians
+    mode: "deg", "rad"
+        specify angle input - "deg": for degree, "rad": for radial. defaul: "deg"
+
+    """
+    if isinstance(obj, list) and isinstance(obj[0], cc.atom):
+        atom_list = obj
+    elif isinstance(obj, cc.molecule):
+        atom_list = obj.atoms
+    else:
+        raise ValueError("obj needs to be list of atoms or molecule")
+
+    if mode == "deg":
+        _rotation = rotation(deg2rad(angle), axis.direction)
+    elif mode == "rad":
+        _rotation = rotation(angle, axis.direction)
+    else:
+        raise ValueError("mode needs to be deg or rad")
+
+    _to_line_basis = basis_transformation(standard_basis, axis.basis)
+    _offset = _to_line_basis.inv_transform(axis.origin)
+
+    for atm in atom_list:
+        _to_atm_basis = basis_transformation(standard_basis, atm.coords.basis)
+        atm.coords = _to_atm_basis.inv_transform(atm.coords)
+        atm.coords -= _offset
+        atm.coords = _rotation.rotate(atm.coords)
+        atm.coords += _offset
+        atm.coords = _to_atm_basis.transform(atm.coords)
+
 
 def generate_from_symmetry(atom, operator):
     """
@@ -51,14 +97,15 @@ def generate_from_symmetry(atom, operator):
             if np.all(_atm.coords.vector == id):
                 return _atm, False
         _atm.coords = vector(
-            [operator.a*_coords[0]+operator.x0,
-             operator.b*_coords[1]+operator.y0,
-             operator.c*_coords[2]+operator.z0,
+            [operator.a * _coords[0] + operator.x0,
+             operator.b * _coords[1] + operator.y0,
+             operator.c * _coords[2] + operator.z0,
              ], _coords.basis
         )
         if _atm.label:
             _atm.label = _atm.label + "*"
         return _atm, True
+
 
 class symmetry_operator:
     """
@@ -75,7 +122,8 @@ class symmetry_operator:
         list of coordinates that are kept in place by symmetry operation, e.g. [[0,0,0]] for inversion [-x, -y, -z].
         leave empty for identity
     """
-    def __init__(self,a ,b ,c ,x0 , y0, z0, id=[], label=None):
+
+    def __init__(self, a, b, c, x0, y0, z0, id=[], label=None):
         self._a = a
         self._b = b
         self._c = c
@@ -96,28 +144,31 @@ class symmetry_operator:
         if isinstance(other, symmetry_operator):
             return np.all([
                 self.a == other.a, self.b == other.b, self.c == other.c,
-                self. x0 == other.x0, self.y0 == other.y0, self.z0 == other.z0
+                self.x0 == other.x0, self.y0 == other.y0, self.z0 == other.z0
             ])
         else:
             raise TypeError(f"cannot compare symmetry_operator with {type(other)}")
 
-
-
     @property
     def a(self):
         return self._a
+
     @property
     def b(self):
         return self._b
+
     @property
     def c(self):
         return self._c
+
     @property
     def x0(self):
         return self._x0
+
     @property
     def y0(self):
         return self._y0
+
     @property
     def z0(self):
         return self._z0
