@@ -1,21 +1,20 @@
 # TODO
 
 This file is for bookkeeping of open tasks
+# Celltools
 
 ## Cell
 
-### contents
-generate super cell from molecules (copy/deepcopy molecular atom list)
-
-### tools
-add rotation around specified axis
-
 ### generate
-add cif file import and export
+add cif file export
 
 
-## Drawing
-Needs to be rewritten for pyqtgraph - matplotlib is too slow to handle supercells
+# Simulation
 
-## Basis
-add **find** functions for plane and line 
+## ediff
+electron diffraction 
+- from cell (api to skued)
+- from supercell (api to skued for formfactors)
+
+## epdf
+electron pair distribution function 

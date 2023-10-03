@@ -1,12 +1,12 @@
 from copy import copy
 import numpy as np
 import pyqtgraph as pg
-from draw.draw import make_figure, draw_line, draw_plane
-from draw.cells import draw_cell, draw_supercell
-from cell.generate import cell_from_cif
-from cell.tools import super_cell, rotate
-from linalg.find import average_line, average_plane
-from linalg.basis import plane, vector, line
+from celltools.draw.draw import make_figure, draw_line, draw_plane
+from celltools.draw.cells import draw_cell, draw_supercell
+from celltools.cell.generate import cell_from_cif
+from celltools.cell.tools import super_cell, rotate
+from celltools.linalg.find import average_line, average_plane
+from celltools.linalg.basis import plane, vector, line
 
 
 cll = cell_from_cif("testdata/erk.cif")
