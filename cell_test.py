@@ -1,11 +1,11 @@
-from linalg.basis import basis, standard_basis, vector
-from cell.contents import atom, molecule, auto_label_atoms, chemical_formula, lattice, cell, super_cell
-from cell.generate import lattice_from_cell_parameters, cell_from_crystal, cell_from_cif
-from cell.tools import move
+from celltools.linalg.basis import basis, standard_basis, vector
+from celltools.cell.contents import atom, molecule, auto_label_atoms, chemical_formula, lattice, cell
+from celltools.cell.generate import lattice_from_cell_parameters, cell_from_crystal, cell_from_cif, cell_to_crystal
+from celltools.cell.tools import move,  super_cell
 
 from crystals import Crystal
-from draw.draw import make_figure
-from draw.cells import draw_supercell
+from celltools.draw.draw import make_figure
+from celltools.draw.cells import draw_supercell
 
 
 from matplotlib import pyplot as plt
@@ -13,4 +13,5 @@ from matplotlib import pyplot as plt
 
 cll = cell_from_cif("testdata/erk.cif")
 cll.atoms_to_molecule()
-cll.molecules[0].auto_bonds()
+
+crystal = cell_to_crystal(cll)
