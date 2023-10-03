@@ -1,5 +1,6 @@
 import typing
-from typing import Union, List, Type
+from typing import Union, List, Type, Tuple
+from itertools import  product
 import numpy as np
 from numpy import deg2rad
 from copy import copy, deepcopy
@@ -9,7 +10,7 @@ from linalg.transformations import basis_transformation, rotation
 
 # TODO: function to generate average plane through a list of atoms
 
-def move(obj, vec):
+def move(obj: cc.atom | cc.molecule, vec: vector) -> None:
     """
     ONLY FUNCTION SKETCH
     takes a cell object, e.g. atom or molecule and moves it in the direction of vector
@@ -68,43 +69,47 @@ def rotate(obj: cc.molecule | List[cc.atom], axis: line, angle: float, mode="deg
         atm.coords = _to_atm_basis.transform(atm.coords)
 
 
-def generate_from_symmetry(atom, operator):
+
+class super_cell(cc.cell):
     """
-    generates a new atom from a symmetry operation
+    class defines a supercell generated from a unit cell with given size
+
     Parameters
     ----------
-    atom: :class:`atom`
-        original atom
-    operator: :class:`symmetry_operator
-
-    Returns
-    -------
-    :classl:`atom`:
-        new atom
-    bool:
-        returns if performed symmetry operation is valid according to operator.id values. Only use atoms for which the
-        returned value is True.
-
-
+    unit_cell: :class:`cell`
+        unit cell from which supercell is generated
+    size: tuple (int, int, int)
+        specifies the size of the supercell along the three lattice dimensions of cell
     """
-    _atm = copy(atom)
-    _coords = _atm.coords
-    if not operator.id:
-        # this escapes the identity
-        return _atm, True
-    else:
-        for id in operator.id:
-            if np.all(_atm.coords.vector == id):
-                return _atm, False
-        _atm.coords = vector(
-            [operator.a * _coords[0] + operator.x0,
-             operator.b * _coords[1] + operator.y0,
-             operator.c * _coords[2] + operator.z0,
-             ], _coords.basis
-        )
-        if _atm.label:
-            _atm.label = _atm.label + "*"
-        return _atm, True
+    def __init__(self, unit_cell: cc.cell, size: Tuple[int, int, int]):
+        self._size = size
+        self._atoms, self._molecules = [], []
+        self.set_lattice(unit_cell.lattice)
+        self._basevectors = [vector([1,0,0],self.lattice),
+                             vector([0,1,0],self.lattice),
+                             vector([0,0,1],self.lattice)]
+
+        self._translation_vector = [l*vector([1,0,0],self.lattice) +
+                                    m*vector([0,1,0],self.lattice) +
+                                    n* vector([0,0,1],self.lattice)
+                                    for (l,m,n) in product(range(self.size[0]),range(self.size[1]),range(self.size[2]))]
+
+
+
+        for trans_vec in self._translation_vector:
+            uc_atms, uc_molcs = unit_cell.base
+            for _atm in uc_atms:
+                _atm_new = copy(_atm)
+                move(_atm_new, trans_vec)
+                self.add_atom(_atm_new)
+            for _molc in uc_molcs:
+                _molc_new = deepcopy(_molc)
+                move(_molc_new, trans_vec)
+                self.add_molecule(_molc_new)
+
+    @property
+    def size(self):
+        return self._size
 
 
 class symmetry_operator:
@@ -186,26 +191,41 @@ class symmetry_operator:
         """
         self._id.append(coord)
 
-class super_cell(cc.cell):
-    def __init__(self, unit_cell, size):
-        self._atoms, self._molecules = [], []
-        self.set_lattice(unit_cell.lattice)
-        self._basevectors = [vector([1,0,0],self.lattice),
-                             vector([0,1,0],self.lattice),
-                             vector([0,0,1],self.lattice)]
+def generate_from_symmetry(atom: cc.atom, operator: symmetry_operator) -> Tuple[cc.atom, bool]:
+    """
+    generates a new atom from a symmetry operation
+    Parameters
+    ----------
+    atom: :class:`atom`
+        original atom
+    operator: :class:`symmetry_operator
 
-        self._translation_vector = [l*vector([1,0,0],self.lattice) +
-                                    m*vector([0,1,0],self.lattice) +
-                                    n* vector([0,0,1],self.lattice)
-                                    for (l,m,n) in product(range(size[0]),range(size[1]),range(size[2]))]
+    Returns
+    -------
+    :classl:`atom`:
+        new atom
+    bool:
+        returns if performed symmetry operation is valid according to operator.id values. Only use atoms for which the
+        returned value is True.
 
-        for trans_vec in self._translation_vector:
-            uc_atms, uc_molcs = unit_cell.base
-            for _atm in uc_atms:
-                _atm_new = copy(_atm)
-                move(_atm_new, trans_vec)
-                self.add_atom(_atm_new)
-            for _molc in uc_molcs:
-                _molc_new = deepcopy(_molc)
-                move(_molc_new, trans_vec)
-                self.add_molecule(_molc_new)
+
+    """
+    _atm = copy(atom)
+    _coords = _atm.coords
+    if not operator.id:
+        # this escapes the identity
+        return _atm, True
+    else:
+        for id in operator.id:
+            if np.all(_atm.coords.vector == id):
+                return _atm, False
+        _atm.coords = vector(
+            [operator.a * _coords[0] + operator.x0,
+             operator.b * _coords[1] + operator.y0,
+             operator.c * _coords[2] + operator.z0,
+             ], _coords.basis
+        )
+        if _atm.label:
+            _atm.label = _atm.label + "*"
+        return _atm, True
+

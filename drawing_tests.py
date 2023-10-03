@@ -4,8 +4,7 @@ import pyqtgraph as pg
 from draw.draw import make_figure, draw_line, draw_plane
 from draw.cells import draw_cell, draw_supercell
 from cell.generate import cell_from_cif
-# from cell.tools import rotate
-from cell.contents import super_cell
+from cell.tools import super_cell, rotate
 from linalg.find import average_line, average_plane
 from linalg.basis import plane, vector, line
 
@@ -22,17 +21,17 @@ cll2 = copy(cll)
 
 print(pln)
 
-w1 = make_figure(title="original cell")
-w2 = make_figure(title="rotated molecule")
+# w1 = make_figure(title="original cell", grid=False)
+w2 = make_figure(title="rotated molecule", grid=False)
 
-_cll1 = draw_cell(w1, cll)
-# _scll = draw_supercell(w, scll, lw=.2)
-draw_plane(w1, pln, range=[(-10,10), (-10,10)])
-draw_line(w1, lne, (-10, 10), 3, [1,0,0,1])
+# _cll1 = draw_cell(w1, cll)
+# # _scll = draw_supercell(w, scll, lw=.2)
+# draw_plane(w1, pln, range=[(-10,10), (-10,10)])
+# draw_line(w1, lne, (-10, 10), 3, [1,0,0,1])
 
 
-# rotate(cll2.molecules[0], lne, 45)
-# _cll2 = draw_cell(w2, cll2)
-# draw_plane(w2, pln, range=[(-10,10), (-10,10)])
-# draw_line(w2, lne, (-10, 10), 3, [1,0,0,1])
+rotate(cll2.molecules[0], lne, 45)
+_cll2 = draw_cell(w2, cll2)
+draw_plane(w2, pln, range=[(-10,10), (-10,10)])
+draw_line(w2, lne, (-10, 10), 3, [1,0,0,1])
 pg.exec()
