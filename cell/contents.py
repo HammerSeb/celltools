@@ -9,7 +9,7 @@ from . import sort2lists
 from linalg.basis import vector, basis, standard_basis
 from linalg.basis import LinearAlgebraError
 
-from cell.tools import move
+# from cell.tools import move
 
 def auto_label_atoms(atms):
     """
@@ -397,27 +397,4 @@ class cell:
         self.add_molecule(molecule(self.atoms))
         self._atoms = []
 
-class super_cell(cell):
-    def __init__(self, unit_cell, size):
-        self._atoms, self._molecules = [], []
-        self.set_lattice(unit_cell.lattice)
-        self._basevectors = [vector([1,0,0],self.lattice),
-                             vector([0,1,0],self.lattice),
-                             vector([0,0,1],self.lattice)]
-
-        self._translation_vector = [l*vector([1,0,0],self.lattice) +
-                                    m*vector([0,1,0],self.lattice) +
-                                    n* vector([0,0,1],self.lattice)
-                                    for (l,m,n) in product(range(size[0]),range(size[1]),range(size[2]))]
-
-        for trans_vec in self._translation_vector:
-            uc_atms, uc_molcs = unit_cell.base
-            for _atm in uc_atms:
-                _atm_new = copy(_atm)
-                move(_atm_new, trans_vec)
-                self.add_atom(_atm_new)
-            for _molc in uc_molcs:
-                _molc_new = deepcopy(_molc)
-                move(_molc_new, trans_vec)
-                self.add_molecule(_molc_new)
 
