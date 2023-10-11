@@ -1,3 +1,4 @@
+import typing
 import warnings
 
 class NotImplementedWarning(Warning):
@@ -132,7 +133,18 @@ property_dict = {
     "Og": [[1,1,1,1],0.3]
 }
 
-def ELEM_TO_COLOR(element):
+def ELEM_TO_COLOR(element: str) -> list:
+    """
+    looks up element in dictionary and returns color as rgba-list. Raises a warning if element is not implemented yet.
+    Parameters
+    ----------
+    element: str
+        string specifing the element
+
+    Returns
+    -------
+        list
+    """
     _implemented = ['H', 'C', 'N' ,'O', 'Zn']
     if element in _implemented:
         return property_dict[element][0]
@@ -140,7 +152,18 @@ def ELEM_TO_COLOR(element):
         warnings.warn("element is not implemented yet, return will be white", NotImplementedWarning)
         return property_dict[element][0]
 
-def ELEM_TO_SIZE(element):
+def ELEM_TO_SIZE(element:str) -> float:
+    """
+    looks up element in dictionary and returns size as float. Raises a warning if element is not implemented yet.
+    Parameters
+    ----------
+    element: str
+        string specifing the element
+
+    Returns
+    -------
+        float
+    """
     _implemented = ['H', 'C', 'N' ,'O', 'Zn']
     if element in _implemented:
         return property_dict[element][1]
