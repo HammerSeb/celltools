@@ -5,7 +5,7 @@ from celltools.draw.cells import draw_cell
 from celltools.cell.generate import cell_from_cif
 from celltools.cell.tools import rotate
 from celltools.linalg.find import average_plane
-from celltools.linalg.basis import line
+from celltools.linalg.basis import Line
 
 
 cll = cell_from_cif("testdata/erk.cif")
@@ -14,7 +14,7 @@ cll.molecules[0].auto_bonds(rmin = 0.5, rmax=2.05)
 # scll = super_cell(cll, (10,3,5))
 molc_coords = [atm.coords for atm in cll.molecules[0].atoms]
 pln = average_plane(molc_coords)
-lne = line(pln.origin, pln.normal)
+lne = Line(pln.origin, pln.normal)
 
 cll2 = copy(cll)
 

@@ -1,13 +1,13 @@
 from numpy import deg2rad
 
-from celltools.linalg.basis import vector, basis
-from celltools.linalg.transformations import rotation
+from celltools.linalg.basis import Vector, Basis
+from celltools.linalg.transformations import Rotation
 
 
-base = basis([0.5,0,0], [0,0.5,0], [0,0,0.5])
-axis = vector([1,1,1], base)
+base = Basis([0.5,0,0], [0,0.5,0], [0,0,0.5])
+axis = Vector([1,1,1], base)
 
-rot = rotation(deg2rad(120), axis)
+rot = Rotation(deg2rad(120), axis)
 
-pnt = vector([1,0,0], base)
+pnt = Vector([1,0,0], base)
 new_pnt = rot.rotate(pnt)
