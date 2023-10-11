@@ -1,6 +1,6 @@
-#ignore
 .idea/
+.vscode/
 .run/
-*.egg-info/
-
-__pycache__/
+.venv/
+*.egg-info
+*.pyc

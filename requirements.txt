@@ -1,0 +1,6 @@
+numpy
+crystals
+matplotlib
+scipy
+scikit-ued
+pyqtgraph
