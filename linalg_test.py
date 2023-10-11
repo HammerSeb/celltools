@@ -1,8 +1,7 @@
 from numpy import deg2rad
 
-from linalg.basis import vector, basis, standard_basis, line, plane
-from linalg.transformations import basis_transformation, rotation
-from linalg.find import average_line, average_plane
+from linalg.basis import vector, basis
+from linalg.transformations import rotation
 
 
 base = basis([0.5,0,0], [0,0.5,0], [0,0,0.5])

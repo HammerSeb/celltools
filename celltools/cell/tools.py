@@ -1,11 +1,10 @@
-import typing
-from typing import Union, List, Type, Tuple
+from typing import List, Tuple
 from itertools import  product
 import numpy as np
 from numpy import deg2rad
 from copy import copy, deepcopy
 import celltools.cell.contents as cc
-from celltools.linalg.basis import basis, vector, line, standard_basis
+from celltools.linalg.basis import vector, line, standard_basis
 from celltools.linalg.transformations import basis_transformation, rotation
 
 # TODO: function to generate average plane through a list of atoms

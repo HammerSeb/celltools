@@ -1,7 +1,5 @@
-import typing
 from typing import List, Tuple
 
-import numpy as np
 from skued.simulation import structure_factor
 import celltools.cell.contents as cc
 from celltools.cell.generate import cell_to_crystal

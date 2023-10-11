@@ -1,4 +1,3 @@
-import typing
 import warnings
 
 class NotImplementedWarning(Warning):

@@ -1,4 +1,3 @@
-import typing
 import re
 import numpy as np
 from numpy import deg2rad, cos, sin, sqrt
