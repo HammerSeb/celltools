@@ -1,7 +1,7 @@
 from numpy import deg2rad
 
-from linalg.basis import vector, basis
-from linalg.transformations import rotation
+from celltools.linalg.basis import vector, basis
+from celltools.linalg.transformations import rotation
 
 
 base = basis([0.5,0,0], [0,0.5,0], [0,0,0.5])
