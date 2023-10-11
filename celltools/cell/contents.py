@@ -1,4 +1,3 @@
-import typing
 from typing import List, Tuple, Union, Optional
 from itertools import combinations
 

@@ -1,5 +1,3 @@
-import typing
-from typing import Union, Literal
 import re
 from os import PathLike
 from typing import Union, Literal

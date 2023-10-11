@@ -3,10 +3,8 @@ from itertools import chain
 
 import pyqtgraph as pg
 import pyqtgraph.opengl as gl
-from pyqtgraph import functions as fn
-from pyqtgraph.Qt import QtCore
 
-from celltools.linalg.basis import basis, vector, standard_basis
+from celltools.linalg.basis import vector
 
 
 class GLPoints(gl.GLScatterPlotItem):

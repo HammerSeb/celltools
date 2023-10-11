@@ -1,9 +1,7 @@
-import typing
 from typing import List, Tuple
 
 import numpy as np
-from numpy import exp, sqrt, pi
-from skued.simulation import structure_factor
+from numpy import exp
 import celltools.cell.tools as ct
 from crystals.lattice import Lattice
 from skued.simulation import affe

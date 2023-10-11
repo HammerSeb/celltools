@@ -1,10 +1,9 @@
-from typing import Union, List, Tuple, Literal
-from copy import copy, deepcopy
-from itertools import product
-from typing import Union, List, Tuple, Literal
-
+from typing import List, Tuple, Literal, Union
+from itertools import  product
 import numpy as np
 from numpy import deg2rad
+from copy import copy, deepcopy
+from celltools.linalg.basis import standard_basis
 
 from celltools.linalg import BasisTransformation, Rotation
 from celltools.linalg import Vector, Line, standard_basis
