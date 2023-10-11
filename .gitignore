@@ -1,6 +1,6 @@
 #ignore
-.idea
-.run
-*.egg-info
+.idea/
+.run/
+*.egg-info/
 
-__pycache__
+__pycache__/
