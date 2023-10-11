@@ -2,7 +2,7 @@ from itertools import combinations
 from typing import List
 
 import numpy as np
-from .basis import vector, line, plane
+from .basis import vector, plane
 from scipy.optimize import minimize
 
 from . import Vector, Line, Plane
