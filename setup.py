@@ -1,4 +1,3 @@
-from gettext import find
 from setuptools import setup, find_packages
 
 setup(name='celltools',
@@ -11,7 +10,7 @@ setup(name='celltools',
       author_email='sebastian.hammer@mail.mcgill.ca',
       url='https://github.com/HammerSeb/celltools',
       packages= find_packages(),
-      install_requires=['numpy', 'crystals', 'matplotlib'],
-      python_requires='>=3.6',
+      install_requires=['numpy', 'crystals', 'matplotlib', 'scipy'],
+      python_requires='>=3.9',
       include_package_data = True
      )

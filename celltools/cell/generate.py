@@ -1,6 +1,5 @@
 import typing
 import re
-from itertools import combinations
 import numpy as np
 from numpy import deg2rad, cos, sin, sqrt
 from crystals import Crystal, Lattice, AtomicStructure, Atom
@@ -12,7 +11,7 @@ from celltools.cell.spacegroup_data import SPACE_GROUP
 
 from CifFile import ReadCif
 
-def lattice_from_cell_parameters(a, b, c, alpha, beta, gamma):
+def lattice_from_cell_parameters(a: float, b: float, c: float, alpha: float, beta: float, gamma: float) -> cc.lattice:
     """
     generates a :class:`lattice` from given cell parameters
     Parameters
@@ -44,7 +43,18 @@ def lattice_from_cell_parameters(a, b, c, alpha, beta, gamma):
     vec_c = np.array([_c1, _c2, _c3])
     return cc.lattice(basis(vec_a, vec_b, vec_c))
 
+
 def cell_from_crystal(cryst: Crystal) -> cc.cell:
+    """
+    creats a :class:`cell` object from a :class:`crystals.Crystal` object
+    Parameters
+    ----------
+    cryst
+
+    Returns
+    -------
+
+    """
     _basis = basis(*cryst.lattice_vectors)
     latt = cc.lattice(_basis)
     atms = []
