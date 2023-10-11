@@ -1,25 +1,23 @@
 import typing
 from typing import List, Tuple, Union, Optional
 from itertools import combinations
+
 import numpy as np
 from crystals.atom import Element, ElementLike
 
+from celltools.linalg import Vector, Basis
+from celltools.linalg.basis import LinearAlgebraError
 from . import sort2lists
 
-from celltools.linalg.basis import vector, basis
-from celltools.linalg.basis import LinearAlgebraError
 
-# from cell.tools import move
-
-
-def auto_label_atoms(atms: List['atom']) -> None:
+def auto_label_atoms(atms: List['Atom']) -> None:
     """
     adds labels to a given list of atoms. The label will be the element letter and a number from 1 to the number of
     atoms of that elements. E.g., if there is for carbon atoms in the list the labels will be "C1", "C2", "C3", "C4".
 
     Parameters
     ----------
-    atms: iterable of :class:`atom`
+    atms: iterable of :class:`Atom`
         atoms to be labeled
     """
     list_of_elements = []
@@ -39,12 +37,12 @@ def auto_label_atoms(atms: List['atom']) -> None:
         no_of_elements[_idx] -= 1
 
 
-def auto_label_molecules(molcs: List['molecule']) -> None:
+def auto_label_molecules(molcs: List['Molecule']) -> None:
     """
     adds labels to a given list of Molecules. Every molecule label will be numbered up to the number of occurrences of
     that label in the list of molecules.
     ----------
-    molcs: list of :class:`molecule`
+    molcs: list of :class:`Molecule`
     """
     list_of_labels = []
     for molc in molcs:
@@ -63,19 +61,19 @@ def auto_label_molecules(molcs: List['molecule']) -> None:
         no_of_labels[_idx] -= 1
 
 
-def chemical_formula(atms: Union[List['atom'], 'molecule']) -> str:
+def chemical_formula(atms: Union[List['Atom'], 'Molecule']) -> str:
     """
     Returns the chemical formula of a molecule,
     Parameters
     ----------
-    atms: iterable of :class:`atom` or class:`molecule`
+    atms: iterable of :class:`Atom` or class:`Molecule`
 
     Returns
     -------
     chem_form: str
         chemical formula of the given molecule
     """
-    if isinstance(atms, molecule):
+    if isinstance(atms, Molecule):
         atms = atms.atoms
     list_of_elements = []
     for atm in atms:
@@ -97,13 +95,13 @@ def chemical_formula(atms: Union[List['atom'], 'molecule']) -> str:
     return chem_form
 
 
-def auto_bonds(atm_list: List['atom', ...], rmin: float = 1, rmax: float = 2) -> List['bond', ...]:
+def auto_bonds(atm_list: List['Atom', ...], rmin: float = 1, rmax: float = 2) -> List['Bond', ...]:
     """
     generates list of bonds from given atom list. A bond between two atoms is generated if the distances of the two
     atoms lies between rmin and rmax
     Parameters
     ----------
-    atm_list: list of :class:`atom`
+    atm_list: list of :class:`Atom`
         atom list from which bonds are created
     rmin: float
         minimum distance between two atoms to create a bond
@@ -112,18 +110,18 @@ def auto_bonds(atm_list: List['atom', ...], rmin: float = 1, rmax: float = 2) ->
 
     Returns
     -------
-        list of :class:`bond`
+        list of :class:`Bond`
     """
     bonds = []
     atm_pairs = combinations(atm_list, 2)
     for pair in atm_pairs:
         _dist = (pair[0].coords - pair[1].coords).abs_global
         if rmin < _dist < rmax:
-            bonds.append(bond(pair[0], pair[1]))
+            bonds.append(Bond(pair[0], pair[1]))
     return bonds
 
 
-class atom(Element):
+class Atom(Element):
     """
     Class representing a particular atom. A position and a label can be specified.
     Additionally, it inherits all methods from class:`crystals.atom.Element`
@@ -132,13 +130,14 @@ class atom(Element):
     atm: ElementLike
         str or int specifing the element from the periodic table
 
-    position: :class:`vector` (optional)
-        position of the atom
+    position: :class:`Vector` (optional)
+        position of the Atom
 
     label: str (optional)
         label of the atom
     """
-    def __init__(self, atm: ElementLike, position: Optional[vector]=None, label: Optional[str]=None):
+
+    def __init__(self, atm: ElementLike, position: Optional[Vector] = None, label: Optional[str] = None):
         super().__init__(atm)
         if not position:
             self._v = None
@@ -146,9 +145,9 @@ class atom(Element):
             self.coords = position
 
         if label:
-            self._label=label
+            self._label = label
         else:
-            self._label=None
+            self._label = None
 
     def __repr__(self) -> str:
         if self.label:
@@ -156,8 +155,8 @@ class atom(Element):
         else:
             return f"< {self.element} @ {self.coords}>"
 
-    def __eq__(self, other: 'atom') -> bool:
-        if isinstance(other, atom):
+    def __eq__(self, other: 'Atom') -> bool:
+        if isinstance(other, Atom):
             if self.element == other.element and self.coords == other.coords:
                 return True
             else:
@@ -166,28 +165,30 @@ class atom(Element):
             raise TypeError("must be compared to atom instance")
 
     @property
-    def coords(self) -> vector:
+    def coords(self) -> Vector:
+        """ returns atom position """
         if self._v:
             return self._v
 
     @property
     def label(self) -> str:
+        """ returns atom label """
         if self._label:
             return self._label
 
     @coords.setter
-    def coords(self, position: Union[List[np.ndarray, basis], vector]):
+    def coords(self, position: Union[List[np.ndarray, Basis], Vector]):
         """
         adds coordinates to the atom as a vector
 
         Parameters
         ----------
-        position: :class:`vector` or list like [position as ndarray (3,), basis instance]
+        position: :class:`Vector` or list like [position as ndarray (3,), basis instance]
         """
-        if isinstance(position, vector):
+        if isinstance(position, Vector):
             self._v = position
         else:
-            self._v = vector(position[0], position[1])
+            self._v = Vector(position[0], position[1])
 
     @label.setter
     def label(self, label: str):
@@ -201,17 +202,18 @@ class atom(Element):
         self._label = label
 
 
-class bond:
+class Bond:
     """
     class representing a bond between two atoms.Position of atoms must be given in same basis.
 
     Parameters
     ----------
-    atm1: :class: `atom`
-    atm2: :class: `atom`
+    atm1: :class:`Atom`
+    atm2: :class:`Atom`
     """
-    def __init__(self, atm1: atom, atm2: atom):
-        if isinstance(atm1, atom) and isinstance(atm2, atom):
+
+    def __init__(self, atm1: Atom, atm2: Atom):
+        if isinstance(atm1, Atom) and isinstance(atm2, Atom):
             if atm1.coords.basis == atm2.coords.basis:
                 self._atm1 = atm1
                 self._atm2 = atm2
@@ -220,7 +222,7 @@ class bond:
         else:
             raise ValueError("input needs to be instance of atom.")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"< Bond: [{self._atm1.label}; {self._atm2.label}] >"
 
     @property
@@ -235,7 +237,7 @@ class bond:
         return (self._atm1.coords - self._atm2.coords).abs_global
 
     @property
-    def bond(self) -> Tuple[atom, atom]:
+    def bond(self) -> Tuple[Atom, Atom]:
         """
         returns tuple of atoms of the bond
         Returns
@@ -245,7 +247,8 @@ class bond:
         """
         return (self._atm1, self._atm2)
 
-class molecule:
+
+class Molecule:
     """
     class representing a molecule as a container for a list of atoms. All atom positions must be given in same basis
     Parameters
@@ -258,14 +261,15 @@ class molecule:
         label of molecule
 
     """
-    def __init__(self, atms: List[atom, ...], bonds: Optional[List[bond, ...]]=None, label: Optional[str]=None):
+
+    def __init__(self, atms: List[Atom, ...], bonds: Optional[List[Bond, ...]] = None, label: Optional[str] = None):
         self._atoms = atms
         auto_label_atoms(self._atoms)
 
         if label:
             self.label = label
         else:
-           self.label = chemical_formula(self.atoms)
+            self.label = chemical_formula(self.atoms)
 
         if bonds:
             self._bonds = bonds
@@ -275,7 +279,7 @@ class molecule:
     def __repr__(self) -> str:
         return f"< Molecule {self.label} >"
 
-    def __getitem__(self, item: Union[str, int]) -> atom:
+    def __getitem__(self, item: Union[str, int]) -> Atom:
         """
         returns atom from atom label or index
         Parameters
@@ -295,12 +299,12 @@ class molecule:
             return self.atoms[item]
 
     @property
-    def atoms(self) -> List[atom, ...]:
+    def atoms(self) -> List[Atom, ...]:
         """ returns atom list """
         return self._atoms
 
     @property
-    def bonds(self) -> List[bond, ...]:
+    def bonds(self) -> List[Bond, ...]:
         """ returns bond list """
         return self._bonds
 
@@ -339,7 +343,7 @@ class molecule:
         """ set label of molecule """
         self._label = label
 
-    def add_bond(self, bnd: Union[bond, List[atom, atom]]):
+    def add_bond(self, bnd: Union[Bond, List[Atom, Atom]]):
         """
         adds a bond to the molecule
         Parameters
@@ -347,46 +351,49 @@ class molecule:
         bnd: :class:`bond` or list [:class:`atom`, :class:`atom`]
             bond to be added. (make sure atoms of bond are atoms of the molecule, no additional check performed!)
         """
-        if isinstance(bnd, bond):
+        if isinstance(bnd, Bond):
             self._bonds.append(bnd)
         else:
-            self._bonds.append(bond(bnd[1], bnd[1]))
+            self._bonds.append(Bond(bnd[1], bnd[1]))
 
-    def auto_bonds(self, rmin: float=1, rmax: float=2):
+    def auto_bonds(self, rmin: float = 1, rmax: float = 2):
         """
         uses function auto_bonds on molecule's atoms. rmin, rmax same as in auto_bonds.
         """
         self._bonds = auto_bonds(self.atoms, rmin=rmin, rmax=rmax)
 
 
-class lattice(basis):
+class Lattice(Basis):
     """
     crystal lattice, inherits from basis. After initalization the offset is always set to lattice.offset = [0,0,0].
     Parameters
     ----------
     Basis: :class:basis or list of 3 np.ndarray size (3,)
-        define the lattice vectors either as a basis or as three basis vectors
+        define the lattice Vectors either as a basis or as three basis Vectors
     """
-    def __init__(self, Basis: Union[basis, List[np.ndarray, np.ndarray, np.ndarray]]):
 
-        if isinstance(Basis, basis):
-            self._basis = Basis.basis
+    def __init__(self, basis: Union[Basis, List[np.ndarray, np.ndarray, np.ndarray]]):
+
+        if isinstance(basis, Basis):
+            self._basis = basis.basis
         else:
-            super().__init__(self, Basis[0], Basis[1], Basis[2])
+            super().__init__(self, basis[0], basis[1], basis[2])
 
         self._offset = np.zeros((3,))
 
-class cell:
+
+class Cell:
     """
-    Class representing a unit cell with lattice vectors and a basis comprised of atoms or molecules
+    Class representing a unit cell with lattice Vectors and a basis comprised of atoms or molecules
     Parameters
     ----------
-    latt: :class:`lattice` or :class:`linalg.basis`
-        defining the lattice vectors in which the basis coordinates are expressed
-    objs: iterable of :class:`atom` or :class:`molecule`
+    latt: :class:`Lattice` or :class:`linalg.Basis`
+        defining the lattice Vectors in which the basis coordinates are expressed
+    objs: iterable of :class:`Atom` or :class:`Molecule`
         basis of the unit cell, i.e. the atoms in the unit cell. Coordinates must be expressed in the lattice basis
     """
-    def __init__(self, latt: lattice, objs: Union[List[atom, ...], List[molecule, ...]]):
+
+    def __init__(self, latt: Lattice, objs: Union[List[Atom, ...], List[Molecule, ...]]):
         self._atoms, self._molecules = [], []
         self.set_lattice(latt)
         self.set_base(objs)
@@ -394,64 +401,64 @@ class cell:
         auto_label_molecules(self._molecules)
 
     @property
-    def lattice(self) -> lattice:
+    def lattice(self) -> Lattice:
         """ lattice systems """
         return self._lattice
 
     @property
-    def base(self) -> Tuple[List[atom, ...], List[molecule, ...]]:
+    def base(self) -> Tuple[List[Atom, ...], List[Molecule, ...]]:
         """
         cell content, i.e. atoms or molecules
         Returns
         -------
-        _atoms: list of :class:`atom`
+        _atoms: list of :class:`Atom`
             list of "uncorrelated" atoms in the unit cell
-        _molecules: list of :class:`molecule`
+        _molecules: list of :class:`Molecule`
             list of molecules in the unit cell
         """
         return self._atoms, self._molecules
 
     @property
-    def atoms(self) -> List[atom, ...]:
+    def atoms(self) -> List[Atom, ...]:
         """ atoms in the unit cell """
         return self._atoms
 
     @property
-    def molecules(self) -> List[molecule, ...]:
+    def molecules(self) -> List[Molecule, ...]:
         """ molecules in the unit cell"""
         return self._molecules
 
-    def set_lattice(self, latt: Union[lattice, basis]):
+    def set_lattice(self, latt: Union[Lattice, Basis]):
         """
         set lattice of unit cell
         Parameters
         ----------
-        latt: :class:`lattice` or :class:`basis`
+        latt: :class:`Lattice` or :class:`Basis`
 
         Raises
         -------
             Value Error
         """
-        if isinstance(latt, basis) or isinstance(latt, lattice):
+        if isinstance(latt, Basis) or isinstance(latt, Lattice):
             self._lattice = latt
         else:
             raise ValueError("latt needs to be instance of basis or lattice")
 
-    def set_base(self, objs: Union[List[atom,...], List[molecule,...]]):
+    def set_base(self, objs: Union[List[Atom, ...], List[Molecule, ...]]):
         """
         sets the crystal base of the cell
         Parameters
         ----------
-        objs: iterable of :class:`atom` or :class:`molecule`
+        objs: iterable of :class:`Atom` or :class:`Molecule`
             atoms or molecules in the unit cell. Atom positions must be given in lattice coordinates.
         """
         for obj in objs:
-            if isinstance(obj, atom):
+            if isinstance(obj, Atom):
                 self._atoms.append(obj)
-            if isinstance(obj, molecule):
+            if isinstance(obj, Molecule):
                 self._molecules.append(obj)
 
-    def add_atom(self, atm: atom):
+    def add_atom(self, atm: Atom):
         """
         adds uncorrelated atom to the unit cell
         Parameters
@@ -460,7 +467,7 @@ class cell:
         """
         self._atoms.append(atm)
 
-    def add_molecule(self, molc: molecule):
+    def add_molecule(self, molc: Molecule):
         """
         adds molecule to the unit cell
         Parameters
@@ -473,7 +480,5 @@ class cell:
         """
         converts atom list into one molecule in list
         """
-        self.add_molecule(molecule(self.atoms))
+        self.add_molecule(Molecule(self.atoms))
         self._atoms = []
-
-

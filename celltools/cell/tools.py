@@ -1,34 +1,34 @@
-import typing
-from typing import Union, List, Type, Tuple
-from itertools import  product
+from typing import Union, List, Tuple, Literal
+from copy import copy, deepcopy
+from itertools import product
+from typing import Union, List, Tuple, Literal
+
 import numpy as np
 from numpy import deg2rad
-from copy import copy, deepcopy
-import celltools.cell.contents as cc
-from celltools.linalg.basis import basis, vector, line, standard_basis
-from celltools.linalg.transformations import basis_transformation, rotation
 
-# TODO: function to generate average plane through a list of atoms
+from celltools.linalg import BasisTransformation, Rotation
+from celltools.linalg import Vector, Line, standard_basis
+from . import Atom, Molecule, Cell
 
-def move(obj: cc.atom | cc.molecule, vec: vector) -> None:
+def move(obj: Union[Atom, Molecule], vec: Vector):
     """
-    ONLY FUNCTION SKETCH
     takes a cell object, e.g. atom or molecule and moves it in the direction of vector
     Parameters
     ----------
     obj: :class:`atom` or :class:`molecule`
     vec: :class:`vector`
     """
-    if isinstance(obj, cc.atom):
-        to_atm_basis = basis_transformation(obj.coords.basis, vec.basis)
+    if isinstance(obj, Atom):
+        to_atm_basis = BasisTransformation(obj.coords.basis, vec.basis)
         obj.coords = obj.coords + to_atm_basis.inv_transform(vec)
-    elif isinstance(obj, cc.molecule):
-        to_mol_basis = basis_transformation(obj.atoms[0].coords.basis, vec.basis)
+    elif isinstance(obj, Molecule):
+        to_mol_basis = BasisTransformation(obj.atoms[0].coords.basis, vec.basis)
         for atm in obj.atoms:
             atm.coords = atm.coords + to_mol_basis.inv_transform(vec)
 
 
-def rotate(obj: cc.molecule | List[cc.atom], axis: line, angle: float, mode="deg") -> None:
+def rotate(obj: Union[Molecule, List[Atom]], axis: Line, angle: float,
+           mode: Union[Literal["deg"], Literal["rad"]] = "deg") -> None:
     """
     rotates object counterclockwise around line about specified angle
     Parameters
@@ -40,28 +40,28 @@ def rotate(obj: cc.molecule | List[cc.atom], axis: line, angle: float, mode="deg
     angle: float
         rotation angle in degree or radians
     mode: "deg", "rad"
-        specify angle input - "deg": for degree, "rad": for radial. defaul: "deg"
+        specify angle input - "deg": for degree, "rad": for radial. default: "deg"
 
     """
-    if isinstance(obj, list) and isinstance(obj[0], cc.atom):
+    if isinstance(obj, list) and isinstance(obj[0], Atom):
         atom_list = obj
-    elif isinstance(obj, cc.molecule):
+    elif isinstance(obj, Molecule):
         atom_list = obj.atoms
     else:
         raise ValueError("obj needs to be list of atoms or molecule")
 
     if mode == "deg":
-        _rotation = rotation(deg2rad(angle), axis.direction)
+        _rotation = Rotation(deg2rad(angle), axis.direction)
     elif mode == "rad":
-        _rotation = rotation(angle, axis.direction)
+        _rotation = Rotation(angle, axis.direction)
     else:
         raise ValueError("mode needs to be deg or rad")
 
-    _to_line_basis = basis_transformation(standard_basis, axis.basis)
+    _to_line_basis = BasisTransformation(standard_basis, axis.basis)
     _offset = _to_line_basis.inv_transform(axis.origin)
 
     for atm in atom_list:
-        _to_atm_basis = basis_transformation(standard_basis, atm.coords.basis)
+        _to_atm_basis = BasisTransformation(standard_basis, atm.coords.basis)
         atm.coords = _to_atm_basis.inv_transform(atm.coords)
         atm.coords -= _offset
         atm.coords = _rotation.rotate(atm.coords)
@@ -69,32 +69,31 @@ def rotate(obj: cc.molecule | List[cc.atom], axis: line, angle: float, mode="deg
         atm.coords = _to_atm_basis.transform(atm.coords)
 
 
-
-class super_cell(cc.cell):
+class SuperCell(Cell):
     """
     class defines a supercell generated from a unit cell with given size
 
     Parameters
     ----------
-    unit_cell: :class:`cell`
+    unit_cell: :class:`Cell`
         unit cell from which supercell is generated
     size: tuple (int, int, int)
         specifies the size of the supercell along the three lattice dimensions of cell
     """
-    def __init__(self, unit_cell: cc.cell, size: Tuple[int, int, int]):
+
+    def __init__(self, unit_cell: Cell, size: Tuple[int, int, int]):
         self._size = size
         self._atoms, self._molecules = [], []
         self.set_lattice(unit_cell.lattice)
-        self._basevectors = [vector([1,0,0],self.lattice),
-                             vector([0,1,0],self.lattice),
-                             vector([0,0,1],self.lattice)]
+        self._basevectors = [Vector([1, 0, 0], self.lattice),
+                             Vector([0, 1, 0], self.lattice),
+                             Vector([0, 0, 1], self.lattice)]
 
-        self._translation_vector = [l*vector([1,0,0],self.lattice) +
-                                    m*vector([0,1,0],self.lattice) +
-                                    n* vector([0,0,1],self.lattice)
-                                    for (l,m,n) in product(range(self.size[0]),range(self.size[1]),range(self.size[2]))]
-
-
+        self._translation_vector = [l * Vector([1, 0, 0], self.lattice) +
+                                    m * Vector([0, 1, 0], self.lattice) +
+                                    n * Vector([0, 0, 1], self.lattice)
+                                    for (l, m, n) in
+                                    product(range(self.size[0]), range(self.size[1]), range(self.size[2]))]
 
         for trans_vec in self._translation_vector:
             uc_atms, uc_molcs = unit_cell.base
@@ -112,7 +111,7 @@ class super_cell(cc.cell):
         return self._size
 
 
-class symmetry_operator:
+class SymmetryOperator:
     """
     class specifing a symmetry operation in a crystal lattice to generate full basis from smallest possible basis
 
@@ -146,7 +145,7 @@ class symmetry_operator:
             return f"< Symm {self.a:.0f}x+{self.x0:.2f} | {self.b:.0f}y+{self.y0:.2f} | {self.c:.0f}y+{self.z0:.2f} >"
 
     def __eq__(self, other):
-        if isinstance(other, symmetry_operator):
+        if isinstance(other, SymmetryOperator):
             return np.all([
                 self.a == other.a, self.b == other.b, self.c == other.c,
                 self.x0 == other.x0, self.y0 == other.y0, self.z0 == other.z0
@@ -191,7 +190,8 @@ class symmetry_operator:
         """
         self._id.append(coord)
 
-def generate_from_symmetry(atom: cc.atom, operator: symmetry_operator) -> Tuple[cc.atom, bool]:
+
+def generate_from_symmetry(atom: Atom, operator: SymmetryOperator) -> Tuple[Atom, bool]:
     """
     generates a new atom from a symmetry operation
     Parameters
@@ -219,7 +219,7 @@ def generate_from_symmetry(atom: cc.atom, operator: symmetry_operator) -> Tuple[
         for id in operator.id:
             if np.all(_atm.coords.vector == id):
                 return _atm, False
-        _atm.coords = vector(
+        _atm.coords = Vector(
             [operator.a * _coords[0] + operator.x0,
              operator.b * _coords[1] + operator.y0,
              operator.c * _coords[2] + operator.z0,
@@ -228,4 +228,3 @@ def generate_from_symmetry(atom: cc.atom, operator: symmetry_operator) -> Tuple[
         if _atm.label:
             _atm.label = _atm.label + "*"
         return _atm, True
-
