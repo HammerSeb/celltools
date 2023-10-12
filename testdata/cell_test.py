@@ -11,7 +11,7 @@ from celltools.draw.cells import draw_supercell
 from matplotlib import pyplot as plt
 
 
-cll = cell_from_cif("testdata/erk.cif")
+cll = cell_from_cif("erk.cif")
 cll.atoms_to_molecule()
 
 crystal = cell_to_crystal(cll)

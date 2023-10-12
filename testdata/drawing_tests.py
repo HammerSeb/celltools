@@ -9,7 +9,7 @@ from celltools.linalg.find import average_line, average_plane
 from celltools.linalg.basis import plane, vector, line
 
 
-cll = cell_from_cif("testdata/erk.cif")
+cll = cell_from_cif("erk.cif")
 cll.atoms_to_molecule()
 cll.molecules[0].auto_bonds(rmin = 0.5, rmax=2.05)
 # scll = super_cell(cll, (10,3,5))

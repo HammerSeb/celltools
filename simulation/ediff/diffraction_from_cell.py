@@ -3,24 +3,28 @@ from typing import List, Tuple
 
 import numpy as np
 from skued.simulation import structure_factor
-import celltools.cell.contents as cc
+
+from . import IndexLike
+from celltools import Cell, SuperCell
 from celltools.cell.generate import cell_to_crystal
 
-
-
-def diffraction_from_cell(hkl: List[Tuple[int, int ,int]], cell: cc.cell):
+def diffraction_from_cell(hkl: List[IndexLike], cell: Cell) -> Tuple[List[np.ndarray], List[complex]]:
     """
- -> Tuple[List[float, ...], List[float, ...]]
+    calculates the scattering vectors and respective structure factor as the complex scattering amplitude for a list of
+    hkl indices from a unit cell. Uses structure_factor method from scikit-ued to calculate the structure factor.
     Parameters
     ----------
-    hkl: iterable of (3,)-tuples
+    hkl: iterable of (3,)-tuples of length N
         list of hkl indices to simulate the structure factor from
-    cell: :class:`cell`
+    cell: :class:`Cell`
         cell to simulate the diffraction from
 
     Returns
     -------
-
+        scatt_vector: list of nd.arrays size (3,) of length N
+            scattering vectors q of respective hkl index in reciprocal space
+        structure_factor: list of complex numbers of length N
+            structure_factor of reflection of respective hkl index
     """
     crystal = cell_to_crystal(cell)
     _scatt_vector = []

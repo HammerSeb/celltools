@@ -19,7 +19,7 @@ import pyqtgraph as pg
 
 matplotlib.use("Qt5Agg")
 
-cell = cell_from_cif("testdata/erk.cif")
+cell = cell_from_cif("erk.cif")
 cell.atoms_to_molecule()
 cell.molecules[0].auto_bonds()
 

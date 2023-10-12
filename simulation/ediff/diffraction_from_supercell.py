@@ -3,41 +3,46 @@ from typing import List, Tuple
 
 import numpy as np
 from numpy import exp, sqrt, pi
-from skued.simulation import structure_factor
-import celltools.cell.tools as ct
+
+from . import IndexLike
+from celltools import SuperCell
 from crystals.lattice import Lattice
 from skued.simulation import affe
 
-def diffraction_from_supercell(hkl: List[Tuple[int, int ,int]], scell: ct.super_cell, norm: bool = True):
+def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm: bool = True):
     """
-
+    calculates the scattering vectors and respective complex scattering amplitude for a list of hkl indices from a
+    super cell. Uses atomic form factors form scikit-ued and crystals.lattice.Lattice to calculate the scattering
+    vectors from the base unit cell.
     Parameters
     ----------
-    hkl: iterable of (3,)-tuples
+    hkl: iterable of (3,)-tuples of length N
         list of hkl indices to simulate the structure factor from
-    cell: :class:`cell`
-        cell to simulate the diffraction from
-    norm: bool (default true)
-        normalize to number of unit cells
+    supercell: :class:`SuperCell`
+        super cell to simulate the diffraction from
 
     Returns
     -------
+        scatt_vector: list of nd.arrays size (3,) of length N
+            scattering vectors q of respective hkl index in reciprocal space
+        amplitude: list of complex numbers of length N
+            amplitude of reflection of respective hkl index
     """
     if norm:
-        N = scell.size[0]*scell.size[1]*scell.size[2]
+        N = supercell.size[0]*supercell.size[1]*supercell.size[2]
     else:
         N=1
 
-    lattice = Lattice(scell.lattice.basis)
+    lattice = Lattice(supercell.lattice.basis)
     _scatt_vector = []
     _amplitude = []
     for _hkl in hkl:
         _scatt_vector.append(lattice.scattering_vector(_hkl))
 
         _atms = []
-        for atm in scell.base[0]:
+        for atm in supercell.base[0]:
             _atms.append(atm)
-        for molc in scell.base[1]:
+        for molc in supercell.base[1]:
             for atm in molc.atoms:
                 _atms.append((atm))
 
