@@ -10,6 +10,6 @@ setup(name='celltools',
       author_email='sebastian.hammer@mail.mcgill.ca',
       url='https://github.com/HammerSeb/celltools',
       packages= find_packages(),
-      install_requires=['numpy', 'scipy', 'pyqtgraph', 'crystals', 'skued'],
+      install_requires=['numpy', 'scipy', 'pyqtgraph', 'crystals', 'scikit-ued'],
       python_requires='>=3.9',
      )
