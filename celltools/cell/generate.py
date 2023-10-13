@@ -1,5 +1,3 @@
-import typing
-from typing import Union, Literal
 import re
 from os import PathLike
 from typing import Union, Literal
@@ -89,7 +87,7 @@ def cell_to_crystal(cell: Cell) -> Crystal:
     return Crystal(AtomicStructure(_atoms), _lattice.lattice_vectors)
 
 
-def cell_from_cif(file: Union[str, PathLike], type: Union[Literal["file"], Literal["sym"]] = "sym"):
+def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Literal["sym"]] = "sym") -> Cell:
     """
     Generatures a :class:`Cell` from a given cif (crystallographic information framework). Supported data type is cif1!
     Parameters
@@ -97,9 +95,9 @@ def cell_from_cif(file: Union[str, PathLike], type: Union[Literal["file"], Liter
     file: cif file
         input file with crystallographic information
 
-    type: str
-        "file" (default): atom list is generated from file without considering symmetries
-        "sym": generate all atoms from listed symmetries
+    mode: str
+        "file": atom list is generated from file without considering symmetries
+        "sym" (default): generate all atoms from listed symmetries
             - NOT ALL SYMMETRIES ARE IMPLEMENTED, CHECK cell.spacegroup_data TO CHECK -
 
     Returns
