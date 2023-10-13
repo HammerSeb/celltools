@@ -87,10 +87,8 @@ lattice = Lattice(Basis([4.59, 0, 0], [0, 4.59, 0], [0, 0, 4.59]))
 origin = Vector([0, 0, 0], lattice)
 a, b, c = Vector([1, 0, 0], lattice), Vector([0, 1, 0], lattice), Vector([0, 0, 1], lattice)
 #Atom positions in an fcc lattice
-atoms = [Atom('Al', origin), Atom('Al', a), Atom('Al', b), Atom('Al', a+b), #bottom corners
-         Atom('Al', c), Atom('Al', c+a), Atom('Al', c+b), Atom('Al', c+a+b), #top corners
+atoms = [Atom('Al', origin), Atom('Al', a), Atom('Al', b), Atom('Al', c), #corners
          Atom('Al', 0.5*(a+b)), Atom('Al', 0.5*(a+c)), Atom('Al', 0.5*(b+c)), # faces
-         Atom('Al', c+0.5*(a+b)), Atom('Al', b+0.5*(a+c)), Atom('Al', a+0.5*(b+c))
          ]
 
 al_unit_cell = Cell(lattice, atoms)
@@ -143,11 +141,52 @@ pg.exec()
 Using ```draw_supercell``` instead of ```draw_cell``` draws a given super cell. With ```draw_line``` and ```draw_plane```
 Line and Plane objections can be drawn, to e.g. show molecular planes or rotation axis.
 
+#### import and export
+Instead of adding each atom to the unit cell yourself, cif-files or ```crystals.Crystal``` objects can be used to 
+generate ```Cell``` objects. Usually not all atoms in the unit cell are listed in the cif file, but only the irreducible
+basis is listed and the rest is generated from the space group symmetry. For the ```cell_from_crystal``` function, there
+is the keyword argument ```mode``` which accepts ```"file"```, for which only the listed atoms of the cif-file are added
+, and ```"sym"```, for which the rest of the atoms is generated from the crystal symmetry. *This has not been
+implemented for many space groups.* 
+
+If you want to add a space group add the necessary ```SymmetryOperators``` in ```celltools\cell\spacegroup_data.py```
+and add the space group to the ```SPACE_GROUP``` dictionary.
+
+*So far, there's no export option for the ```Cell``` or ```SuperCell``` class. Needs to be implemented*
+
+```python
+from celltools import cell_from_cif
+from celltools.cell.generate import cell_from_crystal
+from crystals import Crystal
+
+cell_cif = cell_from_cif("./your_file.cif")
+
+crystal = Crystal() #dummy Crystal object
+cell_crystal = cell_from_crystal(crystal)
+```
+
+
 ### simulation
-So far only the electron diffraction simulation has been implemented. *I plan to implement electron pair distribution 
+So far only the **kinematic** electron diffraction simulation has been implemented. *I plan to implement electron pair distribution 
 function and x-ray diffraction simulations as well.* 
 
+Diffraction can either be simulated from a ```Cell``` or a ```Supercell```. The scattering vectors as a ```Vector``` and
+the complex scattering amplitude can be simulated from a list of miller (hkl) indices. The package also provides a 
+powder diffraction simulation. 
 
+```python
+import numpy as np
+from celltools import cell_from_cif
+from simulation.ediff import diffraction_from_cell, powder_pattern
 
-### Example Code
+cell = cell_from_cif("./your_file.cif")
 
+# simulate diffraction for given miller indices
+hkl = [(1,0,0), (1,-1,0), (0,2,0), (0,0,3)] #exmplary miller indices
+scatter_vec, amlpitude = diffraction_from_cell(hkl, cell)
+
+# simulate poweder instensity of given q-range
+q = np.linspace(0,3,200)
+q_scatt = [vec.abs_global for vec in scatter_vec]
+intensity = powder_pattern(q, q_scatt, amlpitude, w=0.03)
+```
