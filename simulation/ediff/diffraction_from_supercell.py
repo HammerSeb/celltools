@@ -6,10 +6,11 @@ from numpy import exp, sqrt, pi
 
 from . import IndexLike
 from celltools import SuperCell
+from celltools.linalg import Vector
 from crystals.lattice import Lattice
 from skued.simulation import affe
 
-def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm: bool = True):
+def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm: bool = True) -> Tuple[List[Vector], List[complex]]:
     """
     calculates the scattering vectors and respective complex scattering amplitude for a list of hkl indices from a
     super cell. Uses atomic form factors form scikit-ued and crystals.lattice.Lattice to calculate the scattering
@@ -23,7 +24,7 @@ def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm:
 
     Returns
     -------
-        scatt_vector: list of nd.arrays size (3,) of length N
+        scatt_vector: list of :class:`Vector` of length N (in standard_basis)
             scattering vectors q of respective hkl index in reciprocal space
         amplitude: list of complex numbers of length N
             amplitude of reflection of respective hkl index
@@ -37,7 +38,7 @@ def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm:
     _scatt_vector = []
     _amplitude = []
     for _hkl in hkl:
-        _scatt_vector.append(lattice.scattering_vector(_hkl))
+        _scatt_vector.append(Vector(lattice.scattering_vector(_hkl)))
 
         _atms = []
         for atm in supercell.base[0]:
