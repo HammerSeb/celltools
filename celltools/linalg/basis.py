@@ -408,7 +408,7 @@ class Plane:
 
     def __repr__(self) -> str:
         return (f"< plane: {self.parametric_form[0]:.2f}*x + {self.parametric_form[1]:.2f}*y "
-                f"+ {self.parametric_form[2]:.2f}*z = {self.parametric_form[3]} >")
+                f"+ {self.parametric_form[2]:.2f}*z = {self.parametric_form[3]:.2f} >")
 
     @property
     def normal(self) -> Vector:
