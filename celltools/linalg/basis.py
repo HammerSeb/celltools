@@ -537,7 +537,7 @@ class Plane:
                 _basis1 = ((_x_intsec - _origin) * (1 / Vector(_x_intsec - _origin).abs_global)).global_coord
             else:
                 _basis1 = ((_y_intsec - _origin) * (1 / Vector(_y_intsec - _origin).abs_global)).global_coord
-            _basis2 = Vector(np.cross(_basis1, _basis3)) * (
-                        1 / Vector(np.cross(_basis1, _basis3)).abs_global).global_coord
+            _basis2 = Vector(np.cross(_basis1, _basis3) * (
+                        1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
             self._basis = Basis(_basis1, _basis2, _basis3)
             self.basis.offset = self.origin.global_coord
