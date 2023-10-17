@@ -267,7 +267,7 @@ def draw_line(w: gl.GLViewWidget, line: Line, range: Tuple[float, float] = (-1, 
 
 
 def draw_plane(w: gl.GLViewWidget, plane: Plane,
-               range: List[Tuple[float, float], Tuple[float, float]] = [(-5, 5), (-5, 5)],
+               range: Tuple[Tuple[float, float], Tuple[float, float]] = [(-5, 5), (-5, 5)],
                c: RGBALike = [1, 0, 0, 0.7]):
     """
     draws a plane from a :class:`Plane` object and adds it to view widget.
