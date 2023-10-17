@@ -95,7 +95,7 @@ def chemical_formula(atms: Union[List['Atom'], 'Molecule']) -> str:
     return chem_form
 
 
-def auto_bonds(atm_list: List['Atom', ...], rmin: float = 1, rmax: float = 2) -> List['Bond', ...]:
+def auto_bonds(atm_list: List['Atom'], rmin: float = 1, rmax: float = 2) -> List['Bond']:
     """
     generates list of bonds from given atom list. A bond between two atoms is generated if the distances of the two
     atoms lies between rmin and rmax
@@ -177,7 +177,7 @@ class Atom(Element):
             return self._label
 
     @coords.setter
-    def coords(self, position: Union[List[np.ndarray, Basis], Vector]):
+    def coords(self, position: Union[Tuple[np.ndarray, Basis], Vector]):
         """
         adds coordinates to the atom as a vector
 
@@ -262,7 +262,7 @@ class Molecule:
 
     """
 
-    def __init__(self, atms: List[Atom, ...], bonds: Optional[List[Bond, ...]] = None, label: Optional[str] = None):
+    def __init__(self, atms: List[Atom], bonds: Optional[List[Bond]] = None, label: Optional[str] = None):
         self._atoms = atms
         auto_label_atoms(self._atoms)
 
@@ -299,17 +299,17 @@ class Molecule:
             return self.atoms[item]
 
     @property
-    def atoms(self) -> List[Atom, ...]:
+    def atoms(self) -> List[Atom]:
         """ returns atom list """
         return self._atoms
 
     @property
-    def bonds(self) -> List[Bond, ...]:
+    def bonds(self) -> List[Bond]:
         """ returns bond list """
         return self._bonds
 
     @property
-    def atom_labels(self) -> List[str, ...]:
+    def atom_labels(self) -> List[str]:
         """ returns list of atom labels """
         return [atm.label for atm in self.atoms]
 
@@ -319,7 +319,7 @@ class Molecule:
         return self._label
 
     @atom_labels.setter
-    def atom_labels(self, labels: List[str, ...]):
+    def atom_labels(self, labels: List[str]):
         """
         sets atom labels for all atoms according to list of strings
         Parameters
@@ -343,7 +343,7 @@ class Molecule:
         """ set label of molecule """
         self._label = label
 
-    def add_bond(self, bnd: Union[Bond, List[Atom, Atom]]):
+    def add_bond(self, bnd: Union[Bond, Tuple[Atom, Atom]]):
         """
         adds a bond to the molecule
         Parameters
@@ -372,7 +372,7 @@ class Lattice(Basis):
         define the lattice Vectors either as a basis or as three basis Vectors
     """
 
-    def __init__(self, basis: Union[Basis, List[np.ndarray, np.ndarray, np.ndarray]]):
+    def __init__(self, basis: Union[Basis, Tuple[np.ndarray, np.ndarray, np.ndarray]]):
 
         if isinstance(basis, Basis):
             self._basis = basis.basis
@@ -393,7 +393,7 @@ class Cell:
         basis of the unit cell, i.e. the atoms in the unit cell. Coordinates must be expressed in the lattice basis
     """
 
-    def __init__(self, latt: Lattice, objs: Union[List[Atom, ...], List[Molecule, ...]]):
+    def __init__(self, latt: Lattice, objs: Union[List[Atom], List[Molecule]]):
         self._atoms, self._molecules = [], []
         self.set_lattice(latt)
         self.set_base(objs)
@@ -406,7 +406,7 @@ class Cell:
         return self._lattice
 
     @property
-    def base(self) -> Tuple[List[Atom, ...], List[Molecule, ...]]:
+    def base(self) -> Tuple[List[Atom], List[Molecule]]:
         """
         cell content, i.e. atoms or molecules
         Returns
@@ -419,12 +419,12 @@ class Cell:
         return self._atoms, self._molecules
 
     @property
-    def atoms(self) -> List[Atom, ...]:
+    def atoms(self) -> List[Atom]:
         """ atoms in the unit cell """
         return self._atoms
 
     @property
-    def molecules(self) -> List[Molecule, ...]:
+    def molecules(self) -> List[Molecule]:
         """ molecules in the unit cell"""
         return self._molecules
 
@@ -444,7 +444,7 @@ class Cell:
         else:
             raise ValueError("latt needs to be instance of basis or lattice")
 
-    def set_base(self, objs: Union[List[Atom, ...], List[Molecule, ...]]):
+    def set_base(self, objs: Union[List[Atom], List[Molecule]]):
         """
         sets the crystal base of the cell
         Parameters

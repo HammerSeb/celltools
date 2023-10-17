@@ -7,7 +7,7 @@ import pyqtgraph.opengl as gl
 
 from celltools.linalg import Basis, Vector, Line, Plane
 
-RGBALike = Union[List[float, float, float, float], np.ndarray]
+RGBALike = Union[Tuple[float, float, float, float], np.ndarray]
 
 
 class GLPoints(gl.GLScatterPlotItem):

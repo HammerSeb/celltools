@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 from . import Vector, Line, Plane
 
 
-def _average_vectors(list_of_vectors: List[Vector, ...]) -> Vector:
+def _average_vectors(list_of_vectors: List[Vector]) -> Vector:
     """
     auxillary function returning an arthimatic mean vector from a list of vectors
     Parameters
@@ -41,7 +41,7 @@ def average_line(list_of_points: Line[Vector, ...]) -> Line:
 
     """
 
-    def _minimize(x: np.ndarray, pnts: List[Vector, ...]) -> float:
+    def _minimize(x: np.ndarray, pnts: List[Vector]) -> float:
         """
         minimization function: giving the sum of all distances squared to the line defined by x
         Parameters
@@ -77,7 +77,7 @@ def average_line(list_of_points: Line[Vector, ...]) -> Line:
                 Vector([res.x[3], res.x[4], res.x[5]]) * (1 / Vector([res.x[3], res.x[4], res.x[5]]).abs))
 
 
-def average_plane(list_of_points: List[Vector, ...]) -> Plane:
+def average_plane(list_of_points: List[Vector]) -> Plane:
     """
       returns average plane through a given set of points. The average plane is determined by a
       least square minimization of the distance of all points to the line.
@@ -94,7 +94,7 @@ def average_plane(list_of_points: List[Vector, ...]) -> Plane:
 
       """
 
-    def _minimize(x: np.ndarray, pnts: List[Vector, ...]) -> float:
+    def _minimize(x: np.ndarray, pnts: List[Vector]) -> float:
         """
         minimization function: giving the sum of all distances squared to the line defined by x
         Parameters
