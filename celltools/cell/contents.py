@@ -7,7 +7,21 @@ from crystals.atom import Element, ElementLike
 
 from celltools.linalg import Vector, Basis
 from celltools.linalg.basis import LinearAlgebraError
-from . import sort2lists
+
+def _sort2lists(lst1: list, lst2: list) -> Tuple[list, list]:
+    """
+    sorts two unsorted lists according to first given list
+    Parameters
+    ----------
+    lst1: list of sortables
+    lst2: list
+
+    Returns
+    -------
+    l1, l2: sorted lists
+
+    """
+    return [l1 for l1, _ in sorted(zip(lst1, lst2))], [l2 for _, l2 in sorted(zip(lst1, lst2))]
 
 
 def auto_label_atoms(atms: List['Atom']) -> None:
@@ -86,7 +100,7 @@ def chemical_formula(atms: Union[List['Atom'], 'Molecule']) -> str:
     for element in elements:
         no_of_elements.append(list_of_elements.count(element))
 
-    no_of_elements, elements = sort2lists(no_of_elements, elements)
+    no_of_elements, elements = _sort2lists(no_of_elements, elements)
 
     chem_form = ''
     for e, n in zip(elements, no_of_elements):
