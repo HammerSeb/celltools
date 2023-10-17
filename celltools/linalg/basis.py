@@ -43,7 +43,7 @@ def parallel(vec1, vec2):
         return False
 
 
-VectorLike = Union[Tuple[float, float, float], np.ndarray[[float, float, float]]]
+VectorLike = Union[Tuple[float, float, float], np.ndarray]
 IndexLike = Union[Literal[1], Literal[2], Literal[3]]
 
 
