@@ -15,7 +15,7 @@ python3 -m pip install -e celltools
 ```
 inside the download folder, or use
 ```shell
-python3 -m pip install git+git@github.com:HammerSeb/celltools.git
+python3 -m pip install git+https://github.com/HammerSeb/celltools.git
 ```
 to install directly from Github. 
 
