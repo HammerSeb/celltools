@@ -285,8 +285,10 @@ def draw_plane(w: gl.GLViewWidget, plane: Plane,
     c: list or np.ndarray size (4,)
         plane color as rgba. Default is [1, 0, 0, .7]
     """
-    _corners = np.array([range[0][0] * plane.basis[0], range[0][1] * plane.basis[0], range[1][0] * plane.basis[1],
-                         range[1][1] * plane.basis[1]])
+    _corners = np.array([range[0][0] * plane.basis[0]+plane.basis.offset,
+                         range[0][1] * plane.basis[0]+plane.basis.offset,
+                         range[1][0] * plane.basis[1]+plane.basis.offset,
+                         range[1][1] * plane.basis[1]+plane.basis.offset])
     _face = np.array([[0, 1, 2], [3, 1, 0]])
     _colors = np.array([c, c])
     _plane = gl.GLMeshItem(vertexes=_corners, faces=_face, faceColors=_colors, shader="balloon", smooth=True,
