@@ -1,11 +1,12 @@
-from typing import Optional, List
+from typing import Optional, List, Tuple, Union
 
+import numpy as np
 from pyqtgraph import opengl as gl
 
 from celltools.cell import Atom, Molecule, Cell, SuperCell
 from celltools.cell.atom_data import ELEM_TO_COLOR, ELEM_TO_SIZE
 from celltools.linalg.basis import Basis
-from .draw import GLPoints, GLLines, draw_basis, draw_frame
+from .draw import GLPoints, GLLines, draw_basis, draw_frame, RGBALike
 
 
 def _add_atom(GLPts: GLPoints, atom: Atom):
@@ -39,6 +40,51 @@ def _add_molecule(GLPts: GLPoints, molc: Molecule, GLLns: Optional[GLLines]):
                 color = ELEM_TO_COLOR(bond.bond[1].element)
             GLLns.add_line(bond.bond[0].coords, bond.bond[1].coords, c=color)
 
+def compact_content(content: List[Union[GLPoints, GLLines]]) -> List[Tuple[GLPoints, GLLines]]:
+    """
+    auxillary function which takes a content list from draw_cell or draw_supercell and adds :class:`GLPoints` and
+    :class:`GLLines` objects whcih belong together in one tuple.
+    Intended use is to put drawn atoms and drawn bonds of molecules into one iterable instead of having a list of
+    alternating points and lines.
+    Parameters
+    ----------
+    content: list of :class:`GLPoints` and :class:`GLLines`
+        content list created from draw_cell or draw_supercell
+
+    Returns
+    -------
+        list of [:class:`GLPoints`, :class:`GLLines`]
+            compact content list
+    """
+    content_new = []
+    for _i, cnt in enumerate(content[::2]):
+        content_new.append((cnt, content[2*_i+1]))
+    return content_new
+
+
+def highlight_molecule(gl_molecule: Union[GLPoints, Tuple[GLPoints, GLLines]], color: RGBALike = [1, 0, 0, 1]):
+    """
+
+    Parameters
+    ----------
+    gl_molecule
+    color
+
+    Returns
+    -------
+    """
+    if isinstance(gl_molecule, GLPoints):
+        number_of_atoms = gl_molecule.pos.shape[0]
+        c = np.ndarray([color for i in range(number_of_atoms)])
+        gl_molecule.setData(color=c)
+
+    else:
+        number_of_atoms = gl_molecule[0].pos.shape[0]
+        number_of_bonds = gl_molecule[1].pos.shape[0]
+        c = [np.array([color for i in range(number_of_atoms)]),
+             np.array([color for i in range(number_of_bonds)])]
+        gl_molecule[0].setData(color=c[0])
+        gl_molecule[1].setData(color=c[1])
 
 def draw_cell(w: gl.GLViewWidget, cell: Cell, lw: float = 3) -> List:
     """
