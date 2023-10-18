@@ -29,6 +29,11 @@ to start the example module and try all 3D examples. Unfortunately I cannot help
 has been known to work is to install ```pyqt5```, ```pyopengl``` and ```pyqtgraph``` into a clean environment and start 
 from there. Good Luck!
 
+*For anaconda, loading errors of iris or swrast can sometimes be fixed by running*
+```shell
+conda install -c conda-forge libstdcxx-ng
+```
+
 ## How do I use it
 The package comes in two parts, ```celltools``` and ```simulation```. The former contains all tools to build a unit cell
 and manipulate it, while the latter contains diffraction and pair distribution function simulations. 
@@ -50,7 +55,7 @@ from celltools.linalg import Basis, Vector
 basis = Basis([2, 0, 0], [1,1,0], [1, 0, -3])
 v = Vector([1,0,0], basis)
 w = Vector([1,1,1], basis)
-v.
+
 z = 3*v + w
 print(f"coordinates: {z.vector}")
 print(f"global coordinates: {z.global_coord}, global length: {z.abs_global}")
