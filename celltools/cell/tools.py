@@ -1,4 +1,3 @@
-from typing import Union, List, Tuple, Literal
 from copy import copy, deepcopy
 from itertools import product
 from typing import Union, List, Tuple, Literal
@@ -7,8 +6,10 @@ import numpy as np
 from numpy import deg2rad
 
 from celltools.linalg import BasisTransformation, Rotation
-from celltools.linalg import Vector, Line, standard_basis
+from celltools.linalg import Vector, Line, Plane, standard_basis
+from celltools.linalg.find import average_plane
 from . import Atom, Molecule, Cell
+
 
 def move(obj: Union[Atom, Molecule], vec: Vector):
     """
@@ -67,6 +68,24 @@ def rotate(obj: Union[Molecule, List[Atom]], axis: Line, angle: float,
         atm.coords = _rotation.rotate(atm.coords)
         atm.coords += _offset
         atm.coords = _to_atm_basis.transform(atm.coords)
+
+
+def molecular_plane(molc: Molecule) -> Plane:
+    """
+    finds the average plane of a planar molecule.
+
+    Parameters
+    ----------
+    molc: :class:`Molecule
+
+    Returns
+    -------
+        :class:`Plane`
+            average plane through all atoms of a given molecule
+
+    """
+    molc_coords = [atm.coords for atm in molc.atoms]
+    return average_plane(molc_coords)
 
 
 class SuperCell(Cell):
