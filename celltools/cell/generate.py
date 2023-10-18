@@ -126,7 +126,7 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
     for el, coord, label in zip(_elem, _coords, cif["_atom_site_label"]):
         _atms.append(Atom(el[0], coord, label))
 
-    if cif["_symmetry_int_tables_number"] in SPACE_GROUP.keys() and type == "sym":
+    if cif["_symmetry_int_tables_number"] in SPACE_GROUP.keys() and mode == "sym":
         _atmssym = []
         for operator in SPACE_GROUP[cif["_symmetry_int_tables_number"]]:
             # generate atms from symmetry element except inversion
