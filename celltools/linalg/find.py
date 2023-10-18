@@ -123,5 +123,5 @@ def average_plane(list_of_points: List[Vector]) -> Plane:
     x0 = np.array([_origin0, _norm0]).flatten()
     res = minimize(_minimize, x0, args=(list_of_points))
 
-    return plane(vector([res.x[0], res.x[1], res.x[2]]),
-                 vector([res.x[3], res.x[4], res.x[5]]) * (1 / vector([res.x[3], res.x[4], res.x[5]]).abs_global))
+    return Plane(Vector([res.x[0], res.x[1], res.x[2]]),
+                 Vector([res.x[3], res.x[4], res.x[5]]) * (1 / Vector([res.x[3], res.x[4], res.x[5]]).abs_global))
