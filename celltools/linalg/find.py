@@ -24,7 +24,7 @@ def _average_vectors(list_of_vectors: List[Vector]) -> Vector:
     return avg_vec * (1 / len(list_of_vectors))
 
 
-def average_line(list_of_points: Line[Vector, ...]) -> Line:
+def average_line(list_of_points: List[Vector]) -> Line:
     """
     returns average line through a given set of points. The average line is determined by a
     least square minimization of the distance of all points to the line.
