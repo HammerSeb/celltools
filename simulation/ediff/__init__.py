@@ -4,7 +4,7 @@ import numpy as np
 from .diffraction_from_cell import diffraction_from_cell
 from .diffraction_from_supercell import diffraction_from_supercell
 
-IndexLike = Tuple[int, int ,int]
+
 
 def _gaussian(x: np.ndarray, A: float, w: float, xc: float) -> np.ndarray:
     return A / (w * np.sqrt(2 * np.pi)) * np.exp(- np.square(x - xc) / (2 * w **2))
