@@ -4,11 +4,13 @@ from typing import List, Tuple
 import numpy as np
 from numpy import exp, sqrt, pi
 
-from . import IndexLike
+
 from celltools import SuperCell
 from celltools.linalg import Vector
 from crystals.lattice import Lattice
 from skued.simulation import affe
+
+IndexLike = Tuple[int, int ,int]
 
 def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm: bool = True) -> Tuple[List[Vector], List[complex]]:
     """
@@ -50,14 +52,14 @@ def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm:
         _formfactor = []
         _coords = []
         for atm in _atms:
-            _formfactor.append(affe(atm.element, np.sqrt(np.sum(np.square(_scatt_vector[-1])))))
+            _formfactor.append(affe(atm.element, np.sqrt(np.sum(np.square(_scatt_vector[-1].global_coord)))))
             _coords.append(atm.coords.global_coord)
 
         ff = np.array(_formfactor)
         r = np.array(_coords)
 
         _amplitude.append(
-            (1/N) * np.sum( ff * exp(-1j *  np.sum(_scatt_vector[-1]*r, axis=1) ))
+            (1/N) * np.sum( ff * exp(-1j *  np.sum(_scatt_vector[-1].global_coord * r, axis=1) ))
         )
 
     return _scatt_vector, _amplitude

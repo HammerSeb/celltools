@@ -4,10 +4,11 @@ from typing import List, Tuple
 import numpy as np
 from skued.simulation import structure_factor
 
-from . import IndexLike
 from celltools.linalg import Vector
 from celltools import Cell, SuperCell
 from celltools.cell.generate import cell_to_crystal
+
+IndexLike = Tuple[int, int ,int]
 
 def diffraction_from_cell(hkl: List[IndexLike], cell: Cell) -> Tuple[List[Vector], List[complex]]:
     """
