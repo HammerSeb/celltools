@@ -20,7 +20,7 @@ def _add_atom(GLPts: GLPoints, atom: Atom):
     GLPts.add_point(atom.coords, ELEM_TO_SIZE(atom.element), ELEM_TO_COLOR(atom.element))
 
 
-def _add_molecule(GLPts: GLPoints, molc: Molecule, GLLns: Optional[GLLines]):
+def _add_molecule(GLPts: GLPoints, molc: Molecule, GLLns: Optional[GLLines], lw: Optional[float] = 6):
     """
     adds the atoms of a molecule to GLPoints objects. If a GLLines object is given, the bonds of the molecule are added
     as lines.
@@ -39,6 +39,7 @@ def _add_molecule(GLPts: GLPoints, molc: Molecule, GLLns: Optional[GLLines]):
             else:
                 color = ELEM_TO_COLOR(bond.bond[1].element)
             GLLns.add_line(bond.bond[0].coords, bond.bond[1].coords, c=color)
+        GLLns.set_linewidth(lw)
 
 def compact_content(content: List[Union[GLPoints, GLLines]]) -> List[Tuple[GLPoints, GLLines]]:
     """
