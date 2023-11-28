@@ -1,16 +1,16 @@
 import re
 from os import PathLike
-from typing import Union, Literal
+from typing import Union, Literal, Optional
 
 import numpy as np
 from CifFile import ReadCif
-from crystals import Crystal, Lattice, AtomicStructure, Atom
+from crystals import Crystal, Lattice, AtomicStructure
 from numpy import deg2rad, cos, sin, sqrt
 
 from celltools.cell.spacegroup_data import SPACE_GROUP
 from celltools.cell.tools import generate_from_symmetry
-from celltools.linalg import Basis, Vector
-from . import Atom, Lattice, Cell
+from celltools.linalg import Basis, Vector, BasisTransformation, standard_basis
+from . import Atom, Molecule, Lattice, Cell
 
 
 def lattice_from_cell_parameters(a: float, b: float, c: float, alpha: float, beta: float, gamma: float) -> Lattice:
@@ -137,6 +137,90 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
         return Cell(_latt, _atmssym)
     else:
         return Cell(_latt, _atms)
+
+
+def qe_export_molecule(molc: Molecule, file: Optional[Union[str, PathLike]] = None) -> None:
+    """
+    Exports atom coordinates to ATOMIC_SPECIES and ATOMIC_POSITIONS card. Units of Angstrom are assumed for export of
+    atomic positions in the standard basis. Use ibrav=0 or ibrav=1.
+    If no file is specified, card is printed into stdout.
+    Parameters
+    ----------
+    molc: class:`Molecule`
+    file: filepath (Optional)
+
+    """
+    lines = []
+    ### ATOMIC_SPECIES CARD
+    lines.append("ATOMIC_SPECIES\n")
+    _elements = []
+    for atm in molc.atoms:
+        if atm.element not in _elements:
+            _elements.append(atm.element)
+            lines.append(f"{atm.element} {atm.mass} {atm.element}.pseudo\n")
+    lines.append('\n')
+    ### ATOMIC_POSITIONS CARD
+    _molcbasis = molc.atoms[0].coords.basis
+    to_std_basis = BasisTransformation(_molcbasis, standard_basis)
+
+    lines.append("ATOMIC_POSITIONS 'angstrom'\n")
+    for atm in molc.atoms:
+        _coords = to_std_basis.transform(atm.coords)
+        lines.append(f"{atm.label} {_coords[0]:.5f} {_coords[1]:.5f} {_coords[2]:.5f}\n")
+
+    if not file:
+        for line in lines:
+            print(line.strip("\n"))
+    else:
+        with open(file, "w") as f:
+            f.writelines(lines)
+
+
+def qe_export_cell(cell: Cell, file: Optional[Union[str, PathLike]] = None) -> None:
+    """
+    Exports given cell to CELL_PARAMETERS, ATOMIC_SPECIES and ATOMIC_POSITIONS card. Needs to be used with ibrav=0 (no
+    explotation of symmetry! Handle with care!). Atom positions are given in units of lattice, which is assumed to be in
+    angstrom. If no file is specified, card is printed into stdout.
+    Parameters
+    ----------
+    cell: :class:`Cell`
+    file: filepath (Optional)
+    """
+    lines = []
+    ### CELL_PARAMETERS CARD
+    lines.append("CELL_PARAMETERS 'angstrom'\n")
+    for vec in cell.lattice:
+        lines.append(f"{vec[0]:.5f} {vec[1]:.5f} {vec[2]:.5f}\n")
+    lines.append("\n")
+
+    ### ATOMIC_SPECIES CARD
+    lines.append("ATOMIC_SPECIES\n")
+    _elements = []
+    for atm in cell.atoms:
+        if atm.element not in _elements:
+            _elements.append(atm.element)
+            lines.append(f"{atm.element} {atm.mass} {atm.element}.pseudo\n")
+    for molc in cell.molecules:
+        for atm in molc.atoms:
+            if atm.element not in _elements:
+                _elements.append(atm.element)
+                lines.append(f"{atm.element} {atm.mass} {atm.element}.pseudo\n")
+    lines.append('\n')
+
+    ### ATOMIC_POSITIONS CARD
+    lines.append("ATOMIC_POSITIONS 'angstrom'\n")
+    for atm in cell.atoms:
+        lines.append(f"{atm.label} {atm.coords[0]:.5f} {atm.coords[1]:.5f} {atm.coords[2]:.5f}\n")
+    for molc in cell.molecules:
+        for atm in molc.atoms:
+            lines.append(f"{atm.label} {atm.coords[0]:.5f} {atm.coords[1]:.5f} {atm.coords[2]:.5f}\n")
+
+    if not file:
+        for line in lines:
+            print(line.strip("\n"))
+    else:
+        with open(file, "w") as f:
+            f.writelines(lines)
 
 
 def _export_atom_list_to_cif(atoms, file=None):
