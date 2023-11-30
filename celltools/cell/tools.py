@@ -1,6 +1,6 @@
 from copy import copy, deepcopy
 from itertools import product
-from typing import Union, List, Tuple, Literal
+from typing import Union, List, Tuple, Literal, Callable
 
 import numpy as np
 from numpy import deg2rad
@@ -136,114 +136,92 @@ class SymmetryOperator:
 
     Parameters
     ----------
-    a, b, c, x0, y0, z0: float
-        parameters specifing symmetry operation on coordinates [x,y,z] as
-        [a*x + x0, b*y + y0, c*z + z0]
+    x_op, y_op, z_op: float
+        parameters specifing symmetry operation on coordinates [x,y,z] in basis [b1, b2, b3] as
+        [x_op(x,y,z), y_op(x,y,z), z_op(x,y,z)]
     label: str
         custom name of symmetry operation used in __repr__
-    id: list
-        list of coordinates that are kept in place by symmetry operation, e.g. [[0,0,0]] for inversion [-x, -y, -z].
-        leave empty for identity
+        Should be chosen to be Seitz Symbol {R/m axis | translation}
     """
 
-    def __init__(self, a, b, c, x0, y0, z0, id=[], label=None):
-        self._a = a
-        self._b = b
-        self._c = c
-        self._x0 = x0
-        self._y0 = y0
-        self._z0 = z0
-        self._id = id
+    def __init__(self, x_op: Callable, y_op: Callable, z_op: Callable, label: str ="Symmetry Operation") \
+            -> None:
+        self._x_op = x_op
+        self._y_op = y_op
+        self._z_op = z_op
 
         self.label = label
 
     def __repr__(self):
-        if self.label:
-            return f"< Symm {self.label} >"
-        else:
-            return f"< Symm {self.a:.0f}x+{self.x0:.2f} | {self.b:.0f}y+{self.y0:.2f} | {self.c:.0f}y+{self.z0:.2f} >"
-
-    def __eq__(self, other):
-        if isinstance(other, SymmetryOperator):
-            return np.all([
-                self.a == other.a, self.b == other.b, self.c == other.c,
-                self.x0 == other.x0, self.y0 == other.y0, self.z0 == other.z0
-            ])
-        else:
-            raise TypeError(f"cannot compare symmetry_operator with {type(other)}")
+        return f"< {self.label} >"
+    @property
+    def x_op(self):
+        return self._x_op
 
     @property
-    def a(self):
-        return self._a
+    def y_op(self):
+        return self._y_op
 
     @property
-    def b(self):
-        return self._b
+    def z_op(self):
+        return self._z_op
 
-    @property
-    def c(self):
-        return self._c
 
-    @property
-    def x0(self):
-        return self._x0
+def create_SymmetryOperator(generator_string: str) -> SymmetryOperator:
+    """
+    generates a symmetry operator from a generating string of teh form "operation on x, operation on y, operation on z"
+    For example the identity is "x,y,z", a reflection on the xz plane is "x,-y,z"
+    Parameters
+    ----------
+    generator_string: str
+        generator string
 
-    @property
-    def y0(self):
-        return self._y0
+    Returns SymmetryOperator
+        generated symmetry operator
+    -------
 
-    @property
-    def z0(self):
-        return self._z0
+    """
+    x_str, y_str, z_str = generator_string.split(",")
+    def x_op(x,y,z):
+        return eval(x_str)
+    def y_op(x,y,z):
+        return eval(y_str)
+    def z_op(x,y,z):
+        return eval(z_str)
 
-    @property
-    def id(self):
-        return self._id
-
-    def addid(self, coord):
-        """
-        Parameters
-        ----------
-        coord: list (3,0
-            list of coordinates not affected by symmetry operation
-        """
-        self._id.append(coord)
+    return SymmetryOperator(x_op, y_op, z_op,label=generator_string)
 
 
 def generate_from_symmetry(atom: Atom, operator: SymmetryOperator) -> Tuple[Atom, bool]:
     """
-    generates a new atom from a symmetry operation
+    generates a new atom from a symmetry operation that is not the identity. Atoms that are kept in place by the
+    symmetry operation are not returned! Use together with an identity operation to generate full unit cell.
     Parameters
     ----------
     atom: :class:`atom`
         original atom
-    operator: :class:`symmetry_operator
-
+    operator: :class:`SymmetryOperator`
+        can not be the identity (x,y,z) --> (x,y,z)
     Returns
     -------
-    :classl:`atom`:
+    :class:`atom`:
         new atom
+
     bool:
         returns if performed symmetry operation is valid according to operator.id values. Only use atoms for which the
         returned value is True.
-
-
     """
     _atm = copy(atom)
     _coords = _atm.coords
-    if not operator.id:
-        # this escapes the identity
-        return _atm, True
+    _atm.coords = Vector(
+        [operator.x_op(_coords[0], _coords[1], _coords[2]),
+         operator.y_op(_coords[0], _coords[1], _coords[2]),
+         operator.z_op(_coords[0], _coords[1], _coords[2]),
+         ], _coords.basis
+    )
+    if _atm.label:
+        _atm.label = _atm.label + "*"
+    if _atm.coords == atom.coords:
+        return _atm, False
     else:
-        for id in operator.id:
-            if np.all(_atm.coords.vector == id):
-                return _atm, False
-        _atm.coords = Vector(
-            [operator.a * _coords[0] + operator.x0,
-             operator.b * _coords[1] + operator.y0,
-             operator.c * _coords[2] + operator.z0,
-             ], _coords.basis
-        )
-        if _atm.label:
-            _atm.label = _atm.label + "*"
         return _atm, True
