@@ -1,4 +1,5 @@
 import re
+from copy import copy
 from os import PathLike
 from typing import Union, Literal, Optional
 
@@ -128,8 +129,11 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
 
     if cif["_symmetry_int_tables_number"] in SPACE_GROUP.keys() and mode == "sym":
         _atmssym = []
+        for atm in _atms:
+            # generate atms from identity operator (leave positions unchanged)
+            _atmssym.append(copy(atm))
         for operator in SPACE_GROUP[cif["_symmetry_int_tables_number"]]:
-            # generate atms from symmetry element except inversion
+            # generate atms from symmetry element except identity
             for atm in _atms:
                 _atm, sym_out = generate_from_symmetry(atm, operator)
                 if sym_out:
@@ -141,8 +145,8 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
 
 def qe_export_molecule(molc: Molecule, file: Optional[Union[str, PathLike]] = None) -> None:
     """
-    Exports atom coordinates to ATOMIC_SPECIES and ATOMIC_POSITIONS card. Units of Angstrom are assumed for export of
-    atomic positions in the standard basis. Use ibrav=0 or ibrav=1.
+    Exports atom coordinates to ATOMIC_SPECIES and ATOMIC_POSITIONS card  as well as nat and ntyp values.
+    Units of Angstrom are assumed for export of atomic positions in the standard basis. Use ibrav=0 or ibrav=1.
     If no file is specified, card is printed into stdout.
     Parameters
     ----------
@@ -151,14 +155,24 @@ def qe_export_molecule(molc: Molecule, file: Optional[Union[str, PathLike]] = No
 
     """
     lines = []
-    ### ATOMIC_SPECIES CARD
-    lines.append("ATOMIC_SPECIES\n")
+    ### SYSTEM and ATOMIC_SPECIES CARD
     _elements = []
+    _atomtypes = []
     for atm in molc.atoms:
         if atm.element not in _elements:
             _elements.append(atm.element)
-            lines.append(f"{atm.element} {atm.mass} {atm.element}.pseudo\n")
+            _atomtypes.append(atm)
+
+    lines.append("&SYSTEM\n")
+    lines.append(f"nat = {len(molc.atoms)}\n")
+    lines.append(f"ntyp = {len(_elements)}\n")
     lines.append('\n')
+
+    lines.append("ATOMIC_SPECIES\n")
+    for atm in _atomtypes:
+        lines.append(f"{atm.element} {atm.mass} {atm.element}.pseudo\n")
+    lines.append("\n")
+
     ### ATOMIC_POSITIONS CARD
     _molcbasis = molc.atoms[0].coords.basis
     to_std_basis = BasisTransformation(_molcbasis, standard_basis)
@@ -178,9 +192,9 @@ def qe_export_molecule(molc: Molecule, file: Optional[Union[str, PathLike]] = No
 
 def qe_export_cell(cell: Cell, file: Optional[Union[str, PathLike]] = None) -> None:
     """
-    Exports given cell to CELL_PARAMETERS, ATOMIC_SPECIES and ATOMIC_POSITIONS card. Needs to be used with ibrav=0 (no
-    explotation of symmetry! Handle with care!). Atom positions are given in units of lattice, which is assumed to be in
-    angstrom. If no file is specified, card is printed into stdout.
+    Exports given cell to CELL_PARAMETERS, ATOMIC_SPECIES and ATOMIC_POSITIONS card as well as nat and ntyp values.
+    Needs to be used with ibrav=0 (no explotation of symmetry! Handle with care!). Atom positions are given in units of
+    lattice (alat), which is assumed to be in angstrom. If no file is specified, card is printed into stdout.
     Parameters
     ----------
     cell: :class:`Cell`
@@ -193,22 +207,34 @@ def qe_export_cell(cell: Cell, file: Optional[Union[str, PathLike]] = None) -> N
         lines.append(f"{vec[0]:.5f} {vec[1]:.5f} {vec[2]:.5f}\n")
     lines.append("\n")
 
-    ### ATOMIC_SPECIES CARD
-    lines.append("ATOMIC_SPECIES\n")
+    ### SYSTEM and ATOMIC_SPECIES CARD
     _elements = []
+    _atomtypes = []
+    nat = 0
     for atm in cell.atoms:
+        nat +=1
         if atm.element not in _elements:
             _elements.append(atm.element)
-            lines.append(f"{atm.element} {atm.mass} {atm.element}.pseudo\n")
+            _atomtypes.append(atm)
     for molc in cell.molecules:
+        nat += 1
         for atm in molc.atoms:
             if atm.element not in _elements:
                 _elements.append(atm.element)
-                lines.append(f"{atm.element} {atm.mass} {atm.element}.pseudo\n")
+                _atomtypes.append(atm)
+
+    lines.append("&SYSTEM\n")
+    lines.append(f"nat = {nat}\n")
+    lines.append(f"ntyp = {len(_elements)}\n")
     lines.append('\n')
 
+    lines.append("ATOMIC_SPECIES\n")
+    for atm in _atomtypes:
+        lines.append(f"{atm.element} {atm.mass} {atm.element}.pseudo\n")
+    lines.append("\n")
+
     ### ATOMIC_POSITIONS CARD
-    lines.append("ATOMIC_POSITIONS 'angstrom'\n")
+    lines.append("ATOMIC_POSITIONS 'crystal'\n")
     for atm in cell.atoms:
         lines.append(f"{atm.label} {atm.coords[0]:.5f} {atm.coords[1]:.5f} {atm.coords[2]:.5f}\n")
     for molc in cell.molecules:

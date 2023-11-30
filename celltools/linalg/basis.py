@@ -174,7 +174,7 @@ class Vector:
     def __init__(self, vector: VectorLike, basis: Basis = standard_basis):
 
         self.vector = np.array([vector[0], vector[1], vector[2]])
-        self.basis = basis
+        self._basis = basis
 
     def __repr__(self) -> str:
         return f"{self.vector}"
@@ -256,6 +256,10 @@ class Vector:
     def abs_global(self) -> float:
         """ returns absolute length of vector in global reference frame """
         return np.sqrt(self.global_coord[0] ** 2 + self.global_coord[1] ** 2 + self.global_coord[2] ** 2)
+
+    @property
+    def basis(self):
+        return self._basis
 
     def parallel(self, other: 'Vector') -> bool:
         """
