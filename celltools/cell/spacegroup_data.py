@@ -26,6 +26,7 @@ def read_sym_file(file):
     return sg_operator
 
 SPACE_GROUP= {
-    "1": read_sym_file("1.sym"),
-    "2": read_sym_file("2.sym"),
+    "1": "1.sym",
+    "2": "2.sym",
+    "14": "14.sym"
 }

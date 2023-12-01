@@ -8,8 +8,8 @@ from CifFile import ReadCif
 from crystals import Crystal, Lattice, AtomicStructure
 from numpy import deg2rad, cos, sin, sqrt
 
-from celltools.cell.spacegroup_data import SPACE_GROUP
-from celltools.cell.tools import generate_from_symmetry
+from celltools.cell.spacegroup_data import SPACE_GROUP, read_sym_file
+from celltools.cell.tools import generate_from_symmetry, create_SymmetryOperator
 from celltools.linalg import Basis, Vector, BasisTransformation, standard_basis
 from . import Atom, Molecule, Lattice, Cell
 
@@ -115,24 +115,45 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
     # creating lattice from cif
     _latt_params = []
     for block in ltt_blocks:
-        _latt_params.append(float(cif[block]))
+        _latt_params.append(float(re.findall('\d*\.?\d*',cif[block])[0]))
     _latt = lattice_from_cell_parameters(*_latt_params)
 
     _elem = list(map(lambda label: re.findall("\D+", label), cif["_atom_site_label"]))
     _coords = list(map(
-        lambda coord: Vector([float(coord[0]), float(coord[1]), float(coord[2])], _latt),
+        lambda coord: Vector([float(re.findall('\-?\d*\.?\d*', coord[0])[0]),
+                              float(re.findall('\-?\d*\.?\d*',coord[1])[0]),
+                              float(re.findall('\-?\d*\.?\d*',coord[2])[0])],
+                              _latt),
         zip(cif["_atom_site_fract_x"], cif["_atom_site_fract_y"], cif["_atom_site_fract_z"])
     ))
     _atms = []
     for el, coord, label in zip(_elem, _coords, cif["_atom_site_label"]):
         _atms.append(Atom(el[0], coord, label))
 
-    if cif["_symmetry_int_tables_number"] in SPACE_GROUP.keys() and mode == "sym":
+    if "_symmetry_int_tables_number" in cif:
+        sg_number = cif["_symmetry_int_tables_number"]
+    elif "_space_group_it_number" in cif:
+        sg_number = cif["_space_group_it_number"]
+    else:
+        sg_number = '0'
+
+    if mode == 'sym':
         _atmssym = []
+        symmetries = []
+        if "_space_group_symop_operation_xyz" in cif:
+            for gen_string in cif["_space_group_symop_operation_xyz"]:
+                symmetries.append(create_SymmetryOperator(gen_string))
+        elif "_symmetry_equiv_pos_as_xyz" in cif:
+            # only for older cifs
+            for gen_string in cif["_symmetry_equiv_pos_as_xyz"]:
+                symmetries.append(create_SymmetryOperator(gen_string))
+        else:
+            symmetries = read_sym_file(SPACE_GROUP[sg_number])
+
         for atm in _atms:
             # generate atms from identity operator (leave positions unchanged)
             _atmssym.append(copy(atm))
-        for operator in SPACE_GROUP[cif["_symmetry_int_tables_number"]]:
+        for operator in symmetries:
             # generate atms from symmetry element except identity
             for atm in _atms:
                 _atm, sym_out = generate_from_symmetry(atm, operator)

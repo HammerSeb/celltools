@@ -194,22 +194,22 @@ def create_SymmetryOperator(generator_string: str) -> SymmetryOperator:
 
 def generate_from_symmetry(atom: Atom, operator: SymmetryOperator) -> Tuple[Atom, bool]:
     """
-    generates a new atom from a symmetry operation that is not the identity. Atoms that are kept in place by the
-    symmetry operation are not returned! Use together with an identity operation to generate full unit cell.
+    generates a new atom from a symmetry operation. The function returns an additional flag marking if the generated
+    atom is truely a new position or if the atom is kept in place by the symmetry operator!
+    Use together with an identity operation to generate full unit cell.
     Parameters
     ----------
     atom: :class:`atom`
         original atom
     operator: :class:`SymmetryOperator`
-        can not be the identity (x,y,z) --> (x,y,z)
+        symmetry operator generating a new set of atomic positions (x,y,z) -> (x',y',z')
     Returns
     -------
     :class:`atom`:
         new atom
 
     bool:
-        returns if performed symmetry operation is valid according to operator.id values. Only use atoms for which the
-        returned value is True.
+        return if the generated atom is kept in place (False) or if a new position is generated (True).
     """
     _atm = copy(atom)
     _coords = _atm.coords
