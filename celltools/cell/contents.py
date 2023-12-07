@@ -490,9 +490,36 @@ class Cell:
         """
         self._molecules.append(molc)
 
-    def atoms_to_molecule(self):
+    def atoms_to_molecule(self, atom_number: Union[int, List] = 0):
         """
-        converts atom list into one molecule in list
+        converts atom list partwise into molecules in the unit cells
+        Parameters
+        ----------
+        atom_number: int or list of int
+            number of atoms in one molecule. If only an integer is given all molecules are assumed to have same number
+            of atoms. If list is given, atoms are converted into molecules with number of atoms given in list.
+            if atom_number=0 all atoms are converted into one molecule
         """
-        self.add_molecule(Molecule(self.atoms))
+
+        if isinstance(atom_number, int) and atom_number==0:
+            self.add_molecule(Molecule(self.atoms))
+            self._atoms = []
+
+        elif isinstance(atom_number, int) and atom_number>0:
+            no_of_molecules = int(len(self.atoms)/atom_number)
+            for nom in range(no_of_molecules):
+                _molc = []
+                for an in range(atom_number):
+                    _molc.append(self.atoms[nom*atom_number+an])
+                self.add_molecule(Molecule(_molc))
+
+        elif isinstance(atom_number, list):
+            start_index = 0
+            for nom, atom_number in enumerate(list):
+                _molc = []
+                for an in range(atom_number):
+                    _molc.append(self.atoms[start_index+an])
+                self.add_molecule(Molecule(_molc))
+                start_index += atom_number
+
         self._atoms = []
