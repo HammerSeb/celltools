@@ -149,13 +149,11 @@ Line and Plane objections can be drawn, to e.g. show molecular planes or rotatio
 #### import and export
 Instead of adding each atom to the unit cell yourself, cif-files or ```crystals.Crystal``` objects can be used to 
 generate ```Cell``` objects. Usually not all atoms in the unit cell are listed in the cif file, but only the irreducible
-basis is listed and the rest is generated from the space group symmetry. For the ```cell_from_crystal``` function, there
+basis is listed and the rest is generated from the space group symmetry. For the ```cell_from_cif``` function, there
 is the keyword argument ```mode``` which accepts ```"file"```, for which only the listed atoms of the cif-file are added
-, and ```"sym"```, for which the rest of the atoms is generated from the crystal symmetry. *This has not been
-implemented for many space groups.* 
-
-If you want to add a space group add the necessary ```SymmetryOperators``` in ```celltools\cell\spacegroup_data.py```
-and add the space group to the ```SPACE_GROUP``` dictionary.
+, and ```"sym"```, for which the rest of the atoms is generated from the crystal symmetry. If the symmetry operations 
+provided in the cif-file, the function will use these, otherwise, if the space group has been implemented, the 
+necessary operations are taken from ```SPACE_GROUP``` dictionary in ```celltools\cell\spacegroup_data.py```. 
 
 *So far, there's no export option for the ```Cell``` or ```SuperCell``` class. Needs to be implemented*
 
