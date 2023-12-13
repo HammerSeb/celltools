@@ -22,11 +22,11 @@ def check_linear_independence() -> Callable:
 
     def check_accepts(function: Callable) -> Callable:
         def new_function(*args, **kwargs) -> Callable:
-            basis = np.array([*args[1:]])
+            basis = np.array([*args[-3:]])
             if det(basis) == 0:
                 raise LinearAlgebraError("vectors are not linear independent")
 
-            return function(*args, **kwargs)
+            return function(*args[-4:], **kwargs)
 
         new_function.__name__ = function.__name__
 
