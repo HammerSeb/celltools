@@ -88,8 +88,7 @@ def cell_to_crystal(cell: Cell) -> Crystal:
     return Crystal(AtomicStructure(_atoms), _lattice.lattice_vectors)
 
 
-def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Literal["sym"]] = "sym",
-                  foldback:  Union[Literal["full"], Literal["units"], Literal["none"]] = "units") -> Cell:
+def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Literal["sym"]] = "sym") -> Cell:
     """
     Generatures a :class:`Cell` from a given cif (crystallographic information framework). Supported data type is cif1!
     Disclaimer: In general, this function is a mess, handle with care and alsways check the unit cell you are generating
@@ -101,17 +100,9 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
 
     mode: str
         "file": atom list is generated from file without considering symmetries
-        "sym" (default): generate all atoms from listed symmetries
-            - NOT ALL SYMMETRIES ARE IMPLEMENTED, CHECK cell.spacegroup_data TO CHECK -
-
-    foldback: str
-        --- additional option for mode="sym", not implemented for mode="file" ---
-        "full": transpose every atom outside the unit cell to its equivalent position inside the unit cell
-        "units" (default): transpose units that lie fully outside the unitcell to their equivalent positions inside the
-            unit cell. Leave units that are partially located inside and outside the unit cell at their respective
-            positions
-        "none": no foldback performed (no stringent string, for any input string that is not "full" or "units" this will
-            be performed.
+        "sym" (default): generate all atoms from listed symmetries. If symmetry operations are given in cif file, these
+                        operations will be used, otherwise local space group data will be used if implemented (check
+                        SPACE_GROUPS dictionary in spacegroup_data.py)
 
     Returns
     -------
@@ -175,26 +166,7 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
                 if sym_out:
                     _op_atms.append(_atm)
 
-            if foldback == "units":
-                _fold_operation = np.zeros((len(_op_atms),3))
-                for _idx, _atm in enumerate(_op_atms):
-                    _fold_operation[_idx,_atm.coords.vector < 0] = 1
-                    _fold_operation[_idx,_atm.coords.vector > 1] = -1
-
-                if not np.any(_fold_operation==0):
-                    for _idx, _atm in enumerate(_op_atms):
-                        _atm.coords += Vector(_fold_operation[_idx], _latt)
-                _atmssym.append(_op_atms)
-
-            elif foldback == "full":
-                for _atm in _op_atms:
-                    _fold_operation = np.zeros(3,)
-                    _fold_operation[_atm.coords.vector < 0] = 1
-                    _fold_operation[_atm.coords.vector > 1] = -1
-                    _atm.coords += Vector(_fold_operation, _latt)
-                _atmssym.append(_op_atms)
-            else:
-                _atmssym.append(_op_atms)
+            _atmssym.append(_op_atms)
 
         _out = []
         for _op_atms in _atmssym:
