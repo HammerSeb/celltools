@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='celltools',
-      version='0.3.0',
+      version='0.4.0',
       description='Tools to manipulate atoms and molecules in a unit cell',
       long_description=open('README.md').read(),
       long_description_content_type ='text/markdown',

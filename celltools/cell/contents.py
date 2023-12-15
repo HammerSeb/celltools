@@ -492,7 +492,7 @@ class Cell:
 
     def atoms_to_molecule(self, atom_number: Union[int, List] = 0):
         """
-        converts atom list partwise into molecules in the unit cells
+        converts atom list part wise into molecules in the unit cells
         Parameters
         ----------
         atom_number: int or list of int
