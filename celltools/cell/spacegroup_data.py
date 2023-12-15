@@ -24,7 +24,7 @@ def read_sym_file(file: str) -> SymmetryOperator:
     with open(join(path_to_sg_symmetries,file), "r") as symfile:
         for line in symfile.readlines():
             sg_operator.append(
-                create_SymmetryOperator(findall("\S{1,20},\S{1,20},\S{1,20}",line)[0])
+                create_SymmetryOperator(findall(r"\S{1,20},\S{1,20},\S{1,20}",line)[0])
             )
     return sg_operator
 
