@@ -392,7 +392,7 @@ def load_cell(file: str) -> None:
     # atoms
     if i_atoms:
         for line in lines[i_atoms+1:i_atoms+1+no_of_atoms]:
-            atm_pattern = re.findall(r"([A-Z,a-z])\t([A-Z,a-z]\d*)\t(\-?\d+\.?\d*)\t(\-?\d+\.?\d*)"
+            atm_pattern = re.findall(r"([A-Z,a-z]+)\t([A-Z,a-z]+\d*)\t(\-?\d+\.?\d*)\t(\-?\d+\.?\d*)"
                                      r"\t(\-?\d+\.?\d*)", line)[0]
             position = Vector([float(coord) for coord in atm_pattern[2:]], lattice)
             atm = Atom(atm_pattern[0], position)
@@ -414,7 +414,7 @@ def load_cell(file: str) -> None:
                     bond_patterns.append((pattern[0][1], pattern[0][2])
                         )
                 else:
-                    atm_pattern = re.findall(r"([A-Z,a-z])\t([A-Z,a-z]\d*)\t(\-?\d+\.?\d*)\t(\-?\d+\.?\d*)"
+                    atm_pattern = re.findall(r"([A-Z,a-z]+)\t([A-Z,a-z]+\d*)\t(\-?\d+\.?\d*)\t(\-?\d+\.?\d*)"
                                              r"\t(\-?\d+\.?\d*)", line)[0]
                     position = Vector([float(coord) for coord in atm_pattern[2:]], lattice)
                     atm = Atom(atm_pattern[0], position)
