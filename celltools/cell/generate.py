@@ -269,10 +269,10 @@ def qe_export_cell(cell: Cell, file: Optional[Union[str, PathLike]] = None) -> N
     ### ATOMIC_POSITIONS CARD
     lines.append("ATOMIC_POSITIONS 'crystal'\n")
     for atm in cell.atoms:
-        lines.append(f"{atm.label} {atm.coords[0]:.5f} {atm.coords[1]:.5f} {atm.coords[2]:.5f}\n")
+        lines.append(f"{atm.element} {atm.coords[0]:.5f} {atm.coords[1]:.5f} {atm.coords[2]:.5f}\n")
     for molc in cell.molecules:
         for atm in molc.atoms:
-            lines.append(f"{atm.label} {atm.coords[0]:.5f} {atm.coords[1]:.5f} {atm.coords[2]:.5f}\n")
+            lines.append(f"{atm.element} {atm.coords[0]:.5f} {atm.coords[1]:.5f} {atm.coords[2]:.5f}\n")
 
     if not file:
         for line in lines:
