@@ -404,7 +404,8 @@ class Cell:
     latt: :class:`Lattice` or :class:`linalg.Basis`
         defining the lattice Vectors in which the basis coordinates are expressed
     objs: iterable of :class:`Atom` or :class:`Molecule`
-        basis of the unit cell, i.e. the atoms in the unit cell. Coordinates must be expressed in the lattice basis
+        basis of the unit cell, i.e. the atoms in the unit cell. Coordinates must be expressed in the lattice basis.
+        WARNING: This is not checked and the user needs to take care of it!
     """
 
     def __init__(self, latt: Lattice, objs: Union[List[Atom], List[Molecule]]):
