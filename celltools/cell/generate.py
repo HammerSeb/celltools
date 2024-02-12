@@ -5,7 +5,9 @@ from typing import Union, Literal, Optional
 
 import numpy as np
 from CifFile import ReadCif
-from crystals import Crystal, Lattice, AtomicStructure
+from crystals import Crystal, AtomicStructure
+from crystals import Lattice as CrystalLattice
+from crystals.atom import Atom as CrystalAtom
 from numpy import deg2rad, cos, sin, sqrt
 
 from celltools.cell.spacegroup_data import SPACE_GROUP, read_sym_file
@@ -78,13 +80,13 @@ def cell_to_crystal(cell: Cell) -> Crystal:
     -------
         :class:`Crystal`
     """
-    _lattice = Lattice(cell.lattice.basis)
+    _lattice = CrystalLattice(cell.lattice.basis)
     _atoms = []
     for atm in cell.atoms:
         _atoms.append(Atom(atm.element, atm.coords.vector, _lattice))
     for molc in cell.molecules:
         for atm in molc:
-            _atoms.append(Atom(atm.element, atm.coords.vector, _lattice))
+            _atoms.append(CrystalAtom(atm.element, atm.coords.vector, _lattice))
     return Crystal(AtomicStructure(_atoms), _lattice.lattice_vectors)
 
 
