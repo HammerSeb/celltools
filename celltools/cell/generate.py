@@ -317,7 +317,7 @@ def save_cell(cell: Cell, file: str) -> None:
             for atm in cell.atoms:
                 f.write(f"{atm.element}\t"
                         f"{atm.label}\t"
-                        f"{atm.coords[0]}\t{atm.coords[3]}\t{atm.coords[2]}\n")
+                        f"{atm.coords[0]}\t{atm.coords[1]}\t{atm.coords[2]}\n")
 
         ###MOLECULES
         if cell.molecules:
