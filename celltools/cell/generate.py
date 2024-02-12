@@ -381,7 +381,7 @@ def load_cell(file: str) -> None:
     lattice_lines = ""
     for line in lines[i_lattice:i_lattice+5]:
         lattice_lines += line
-    lattice_pattern = re.findall(r"(v\d = )\[(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})\s+(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})\s+"
+    lattice_pattern = re.findall(r"(v\d = )\[\s*(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})\s+(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})\s+"
                               r"(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})", lattice_lines)
     v1 = np.array([float(coord) for coord in lattice_pattern[0][1:]])
     v2 = np.array([float(coord) for coord in lattice_pattern[1][1:]])
