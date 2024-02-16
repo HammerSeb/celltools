@@ -23,6 +23,8 @@ def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm:
         list of hkl indices to simulate the structure factor from
     supercell: :class:`SuperCell`
         super cell to simulate the diffraction from
+    norm: boolean, optional (default True)
+        if true, normalizes the intensity to the size of the super cell
 
     Returns
     -------
