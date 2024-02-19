@@ -215,7 +215,7 @@ def qe_export_molecule(molc: Molecule, file: Optional[Union[str, PathLike]] = No
     lines.append("ATOMIC_POSITIONS 'angstrom'\n")
     for atm in molc.atoms:
         _coords = to_std_basis.transform(atm.coords)
-        lines.append(f"{atm.label} {_coords[0]:.5f} {_coords[1]:.5f} {_coords[2]:.5f}\n")
+        lines.append(f"{atm.label} {_coords[0]:.10f} {_coords[1]:.10f} {_coords[2]:.10f}\n")
 
     if not file:
         for line in lines:
@@ -239,7 +239,7 @@ def qe_export_cell(cell: Cell, file: Optional[Union[str, PathLike]] = None) -> N
     ### CELL_PARAMETERS CARD
     lines.append("CELL_PARAMETERS 'angstrom'\n")
     for vec in cell.lattice:
-        lines.append(f"{vec[0]:.5f} {vec[1]:.5f} {vec[2]:.5f}\n")
+        lines.append(f"{vec[0]:.10f} {vec[1]:.10f} {vec[2]:.10f}\n")
     lines.append("\n")
 
     ### SYSTEM and ATOMIC_SPECIES CARD
@@ -271,10 +271,10 @@ def qe_export_cell(cell: Cell, file: Optional[Union[str, PathLike]] = None) -> N
     ### ATOMIC_POSITIONS CARD
     lines.append("ATOMIC_POSITIONS 'crystal'\n")
     for atm in cell.atoms:
-        lines.append(f"{atm.element} {atm.coords[0]:.5f} {atm.coords[1]:.5f} {atm.coords[2]:.5f}\n")
+        lines.append(f"{atm.element} {atm.coords[0]:.10f} {atm.coords[1]:.10f} {atm.coords[2]:.10f}\n")
     for molc in cell.molecules:
         for atm in molc.atoms:
-            lines.append(f"{atm.element} {atm.coords[0]:.5f} {atm.coords[1]:.5f} {atm.coords[2]:.5f}\n")
+            lines.append(f"{atm.element} {atm.coords[0]:.10f} {atm.coords[1]:.10f} {atm.coords[2]:.10f}\n")
 
     if not file:
         for line in lines:
