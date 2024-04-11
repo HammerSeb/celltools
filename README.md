@@ -2,11 +2,15 @@
 This python package provides the tools to build and manipulate unit cells and supercells and to calculate diffraction 
 patterns from these cells. Using ```pyqtgraph``` the cells and supercells can be drawn in 3D. 
 
+The package has been developed as part of the project "Analyzing the Intermolecular Dynamics of Excited States in Molecular Semiconductors" funded by the German Research Foundation (DFG) within in the Walter Benjamin Program (project 490894053) which is greatfully acknowledged. 
+
 ***This package is under active development and collaborates are welcome. I will try to ensure consistency so that old code
 can run on newer version, but cannot guarantee it at this point.*** 
 
 *At some point a readthedocs will also come up, so far you have to work with the docstrings of the functions, 
 unfortunately. All classes and functions are well documented.*
+
+
 
 ## Installation
 Either download the whole package from here and install into any environment by executing 
