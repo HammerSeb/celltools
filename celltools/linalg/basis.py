@@ -181,7 +181,7 @@ class Vector:
 
     def __add__(self, other: 'Vector') -> 'Vector':
         """ addition of 2 vector instances """
-        if not self.basis == other.basis:
+        if not np.all(self.basis == other.basis):
             raise LinearAlgebraError("basis do not match")
         else:
             return Vector([self.vector[0] + other.vector[0],
