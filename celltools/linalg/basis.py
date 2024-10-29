@@ -290,7 +290,7 @@ class Line:
         defines direction of line
     """
     def __init__(self, origin: Vector, direction: Vector):
-        if origin.basis == direction.basis:
+        if np.all(origin.basis == direction.basis):
             self._origin = origin
             self._direction = direction
             self._basis = self.origin.basis
