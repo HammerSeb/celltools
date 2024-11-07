@@ -3,7 +3,7 @@
 .run/
 *.egg-info/
 testdata/
-testskripts/
+testscripts/
 
 __pycache__/
 
