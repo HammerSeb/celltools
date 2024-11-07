@@ -396,6 +396,35 @@ class Lattice(Basis):
         self._offset = np.zeros((3,))
 
 
+class ReciprocalLattice(Lattice):
+    """
+    reciprocal lattice, inherits from Lattice. Defines the canonical reciprocal lattice from a given crystal lattice (a,b,c): 
+
+        a* = 2*pi/V (b x c) 
+        b* = 2*pi/V (c x a) 
+        c* = 2*pi/V (a x b) 
+
+        with V = (a . (b x c)) the unit cell Volume
+    
+    Units are in 1/length where length is the length unit of the crystal lattice. 
+
+    Note: Here, the basis vectors are chosen to incorporate the 2pi factor into the reciprocal lattice itself!
+
+    Parameters
+    ----------
+    lattice : Lattice
+        crystal lattice from which the reciprocal lattice is derived
+    """
+    def __init__(self, lattice: Lattice) -> Lattice:
+        
+        V = np.dot(lattice.v1, np.cross(lattice.v2, lattice.v3))
+
+        rec_a = 2 * np.pi * np.cross(lattice.v2, lattice.v3) / V
+        rec_b = 2 * np.pi * np.cross(lattice.v3, lattice.v1) / V
+        rec_c = 2 * np.pi * np.cross(lattice.v1, lattice.v2) / V
+
+        super().__init__((rec_a, rec_b, rec_c))
+
 class Cell:
     """
     Class representing a unit cell with lattice Vectors and a basis comprised of atoms or molecules
