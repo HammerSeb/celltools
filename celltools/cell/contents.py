@@ -425,6 +425,7 @@ class ReciprocalLattice(Lattice):
 
         super().__init__((rec_a, rec_b, rec_c))
 
+
 class Cell:
     """
     Class representing a unit cell with lattice Vectors and a basis comprised of atoms or molecules
@@ -448,6 +449,11 @@ class Cell:
     def lattice(self) -> Lattice:
         """ lattice systems """
         return self._lattice
+    
+    @property 
+    def reciprocal_lattice(self) -> ReciprocalLattice:
+        """ reciprocal lattice of cell """
+        return self._reciprocal_lattice
 
     @property
     def base(self) -> Tuple[List[Atom], List[Molecule]]:
@@ -485,6 +491,7 @@ class Cell:
         """
         if isinstance(latt, Basis) or isinstance(latt, Lattice):
             self._lattice = latt
+            self._reciprocal_lattice = ReciprocalLattice(latt)
         else:
             raise ValueError("latt needs to be instance of basis or lattice")
 
