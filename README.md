@@ -1,3 +1,5 @@
+***LEGACY BRANCH - THIS BRANCH PRESERVER CELLTOOLS AS USED FOR THE ZNPC EXCIMER STUDY.***
+
 # CellTools
 This python package provides the tools to build and manipulate unit cells and supercells and to calculate diffraction 
 patterns from these cells. Using ```pyqtgraph``` the cells and supercells can be drawn in 3D. 
