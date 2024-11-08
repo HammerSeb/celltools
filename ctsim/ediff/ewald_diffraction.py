@@ -2,7 +2,7 @@ import typing
 from typing import List, Tuple, Union, Literal
 import numpy as np
 from itertools import product
-
+from skued.simulation import affe
 
 from celltools.linalg import Vector
 from celltools import Cell
@@ -10,23 +10,47 @@ from celltools import Cell
 
 def calculate_structure_factor(cell: Cell, k_point: Vector) -> complex:
     """
-    calculates structure factor for 
+    calculates structure factor for reflection at reciprocal lattice point given by K_point at 0K (DW NOT INCLUDED). 
+
     Parameters
     ----------
     cell : Cell
-        _description_
+        unit cell 
     k_point : Vector
-        _description_
+        reciprocal lattice vector 
 
     Returns
     -------
     complex
-        _description_
+        complex structure factor. Scattering intensity is proportional to absolute square.
     """
-    pass
+    cell_atoms = []
+    for atm in cell.base[0]:
+        cell_atoms.append(atm)
+    for molc in cell.base[1]:
+        for atm in molc.atoms:
+            cell_atoms.append(atm)
+
+    ff, r = [], []
+
+    for atm in cell_atoms:
+            ff.append(affe(atm.element, k_point.abs_global))
+            r.append(atm.coords.global_coord)
+
+    ff = np.array(ff)
+    r = np.array(r)
+
+    structure_factor = np.sum(
+        ff *  np.exp( -1j * np.sum(k_point.global_coord * r, axis=1) )
+    )
+
+
+    ### Can basically be copied from diffraction_from_supercell
+
+    return structure_factor
 
 def ewald_diffraction(k_vector: Vector, cell: Cell, grid: (int, int, int), *,
-                      ds_cutoff: float = 1e-6, 
+                      ds_cutoff: float = 1e-3, 
                       distance_correction: Union[None, Literal["exponential"], Literal["gaussian"]] = None) -> [List[Vector], List[complex], List[float]]:
     """_summary_
 
@@ -39,7 +63,7 @@ def ewald_diffraction(k_vector: Vector, cell: Cell, grid: (int, int, int), *,
     grid : (int, int, int)
         defines the size of the reciprocal grid through which the cut with the Ewald sphere is performed. Input is a tuple (nx, ny, nz) which defines an isotropic grid size around the reciprocal space origin (0,0,0) with +-ni points for each direction. For example (10,10,10) gives (-10, 0, 0), (-9,0,0), ... ,(0,0,0), ..., (10,0,0); (-10,-10,0),(-9,-10,0),... and so on.  
     ds_cutoff : float, optional
-        In reality, the scattering condition is not only fulfilled if the Gamma point lies on the Ewald sphere but in a region around the Gamma point due to mosaicity, crystal size effects etc. This value gives the cutoff ratio in which range the scattering condition is viewed as fulfilled, i.e. if |(distance to Ewald sphere)/(radius of Ewald sphere)| < ds_cutoff reciprocal lattice point fulfills scattering condition. by default 1e-6
+        In reality, the scattering condition is not only fulfilled if the Gamma point lies on the Ewald sphere but in a region around the Gamma point due to mosaicity, crystal size effects etc. This value gives the cutoff ratio in which range the scattering condition is viewed as fulfilled, i.e. if |(distance to Ewald sphere)/(radius of Ewald sphere)| < ds_cutoff reciprocal lattice point fulfills scattering condition. by default 1e-3
     distance_correction : None, "exponential", "gaussian", optional
         Describes the intensity modulation for points fulfilling the scattering condition with distance from the Ewald sphere. ONLY None IMPLEMENTED so far. by default None
 
@@ -69,8 +93,8 @@ def ewald_diffraction(k_vector: Vector, cell: Cell, grid: (int, int, int), *,
     sphere_center = -1*k_vector
     # build distance check sphere center and k grid
     def distance_to_sphere_check(k_point):
-        distance_to_sphere = (k_point - sphere_center).abs_global
-        if distance_to_sphere / k_vector.abs_global < ds_cutoff:
+        distance_to_sphere = (k_point - sphere_center).abs_global - k_vector.abs_global
+        if abs(distance_to_sphere / k_vector.abs_global) < ds_cutoff:
             return True, distance_to_sphere
         else:
             return False, distance_to_sphere
@@ -82,7 +106,7 @@ def ewald_diffraction(k_vector: Vector, cell: Cell, grid: (int, int, int), *,
         condition_fulfilled, distance_to_sphere = distance_to_sphere_check(k_point)
         if condition_fulfilled:
             reflections.append(k_point)
-            structure_factor.append(calculate_structure_factor(k_point))
+            structure_factor.append(calculate_structure_factor(cell,k_point))
             ds.append(distance_to_sphere)
     
     return reflections, structure_factor, ds
