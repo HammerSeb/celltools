@@ -2,7 +2,7 @@ import typing
 from typing import List, Tuple, Union, Literal
 import numpy as np
 from itertools import product
-from skued import electron_wavelength
+from skued import electron_wavelength as skued_electron_wavelength
 from skued.simulation import affe
 
 
@@ -115,7 +115,7 @@ def ewald_diffraction(k_vector: Vector, cell: Cell, grid: (int, int, int), *,
 
 class DiffractionExperiment:
     def __init__(self, cell: Cell, direction: Vector, electron_energy: float, grid: (int, int, int) = (5,5,5),*,
-                  ds_cutoff: float = 1e-3, distance_correction: Union[None, Literal["exponential"], Literal["gaussian"]] = None) -> DiffractionExperiment:
+                  ds_cutoff: float = 1e-3, distance_correction: Union[None, Literal["exponential"], Literal["gaussian"]] = None):
         """
         This class represents a diffraction experiment and calculates the diffraction using the Ewald sphere method on projects the reciprocal lattice points fulfilling the scattering condition on a plane normal to the incoming electron beam as would be the case for a planar detector. 
         NOTE: The projection does not take any distortions due to the curvature of the Ewald sphere into account but assumes an "Ewald plane". 
@@ -145,6 +145,11 @@ class DiffractionExperiment:
         self._grid = grid
         self._ewald_diffraction_kwargs = [ds_cutoff, distance_correction]
 
+        self.hkl = []
+        self.reflections = []
+        self.structure_factor = None
+        self.ds = None
+
         self._experiment_setup()
 
     def _experiment_setup(self):
@@ -152,11 +157,13 @@ class DiffractionExperiment:
         set up diffraction experiment
         """
         # make k_vector incoming k-vector
-        self._direction = ( 2 * np.pi / electron_wavelength(self.electron_energy) ) ( 1 / self._direction.abs_global) * self._direction
+        self._direction = ( 2 * np.pi / skued_electron_wavelength(self.electron_energy) ) * ( 1 / self._direction.abs_global) * self._direction
         
         # Ewald diffraction  
         reflections, structure_factor, ds = ewald_diffraction(
-            self.direction, self.cell, self.grid, *self._ewald_diffraction_kwargs
+            self.direction, self.cell, self.grid, 
+            ds_cutoff=self._ewald_diffraction_kwargs[0],
+            distance_correction=self._ewald_diffraction_kwargs[1]
         )
         
         # make "Ewald plane"
@@ -165,8 +172,7 @@ class DiffractionExperiment:
         
         # project Bragg reflections onto plane
         # save old coordinates as (hkl) labels
-        self.hkl = []
-        self.reflections = []
+
         self.structure_factor = structure_factor
         self.ds = ds
 
@@ -175,7 +181,10 @@ class DiffractionExperiment:
         for reflection in reflections:
             self.hkl.append(f"({reflection[0]} {reflection[1]} {reflection[2]})")
             _reflection_in_plane_coordinates = to_plane_coordinates.transform(reflection)
-            _reflection_in_plane_coordinates[2] = 0
+            _reflection_in_plane_coordinates = Vector(
+                (_reflection_in_plane_coordinates[0], _reflection_in_plane_coordinates[1], 0), 
+                _reflection_in_plane_coordinates.basis
+            )
             self.reflections.append(_reflection_in_plane_coordinates)
 
     @property
@@ -194,17 +203,17 @@ class DiffractionExperiment:
     def grid(self):
         return self._grid
     
-    @setter.direction
+    @direction.setter
     def direction(self, direction_new):
         self._direction = direction_new
         self._experiment_setup()
     
-    @setter.electron_energy
+    @electron_energy.setter
     def electron_energy(self, electron_energy_new):
         self._electron_energy = electron_energy_new
         self._experiment_setup()   
 
-    @setter.grid
+    @grid.setter
     def grid(self, grid_new):
         self._grid = grid_new
         self._experiment_setup()
