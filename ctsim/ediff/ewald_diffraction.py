@@ -2,9 +2,11 @@ import typing
 from typing import List, Tuple, Union, Literal
 import numpy as np
 from itertools import product
+from skued import electron_wavelength
 from skued.simulation import affe
 
-from celltools.linalg import Vector
+
+from celltools.linalg import Vector, Plane
 from celltools import Cell
 
 
@@ -110,3 +112,62 @@ def ewald_diffraction(k_vector: Vector, cell: Cell, grid: (int, int, int), *,
             ds.append(distance_to_sphere)
     
     return reflections, structure_factor, ds
+
+class DiffractionExperiment:
+    def __init__(self, cell: Cell, direction: Vector, electron_energy: float, *,
+                  ds_cutoff: float = 1e-3, distance_correction: Union[None, Literal["exponential"], Literal["gaussian"]] = None) -> DiffractionExperiment:
+        """
+        This class represents a diffraction experiment and calculates the diffraction using the Ewald sphere method on projects the reciprocal lattice points fulfilling the scattering condition on a plane normal to the incoming electron beam as would be the case for a planar detector. 
+        NOTE: The projection does not take any distortions due to the curvature of the Ewald sphere into account but assumes an "Ewald plane". 
+        Parameters
+        ----------
+        cell : Cell
+            input unit cell
+        direction : Vector
+            direction of the incoming electron beam in reciprocal lattice coordinates of cell
+        electron_energy : float
+            electron energy in kV
+        ds_cutoff : float, optional
+            In reality, the scattering condition is not only fulfilled if the Gamma point lies on the Ewald sphere but in a region around the Gamma point due to mosaicity, crystal size effects etc. This value gives the cutoff ratio in which range the scattering condition is viewed as fulfilled, i.e. if |(distance to Ewald sphere)/(radius of Ewald sphere)| < ds_cutoff reciprocal lattice point fulfills scattering condition. by default 1e-3,
+        distance_correction :  None, "exponential", "gaussian", optional
+            Describes the intensity modulation for points fulfilling the scattering condition with distance from the Ewald sphere. ONLY None IMPLEMENTED so far. by default None
+
+        Returns
+        -------
+        DiffractionExperiment
+        """
+
+        self._cell = cell
+        self._direction = direction
+        self._electron_energy = electron_energy
+        self._ewald_diffraction_kwargs = [ds_cutoff, distance_correction]
+
+        self._experiment_setup()
+
+    def _experiment_setup(self):
+        """
+        set up diffraction experiment
+        """
+        pass
+
+    @property
+    def cell(self):
+        return self._cell
+    
+    @property
+    def direction(self):
+        return self._direction
+    
+    @property
+    def electron_energy(self):
+        return self._electron_energy
+    
+    @setter.direction
+    def direction(self, direction_new):
+        self._direction = direction_new
+        self._experiment_setup()
+    
+    @setter.electron_energy
+    def electron_energy(self, electron_energy_new):
+        self._electron_energy = electron_energy_new
+        self._experiment_setup()   
