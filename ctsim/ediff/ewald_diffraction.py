@@ -6,7 +6,7 @@ from skued import electron_wavelength
 from skued.simulation import affe
 
 
-from celltools.linalg import Vector, Plane
+from celltools.linalg import Vector, Plane, BasisTransformation
 from celltools import Cell
 
 
@@ -114,7 +114,7 @@ def ewald_diffraction(k_vector: Vector, cell: Cell, grid: (int, int, int), *,
     return reflections, structure_factor, ds
 
 class DiffractionExperiment:
-    def __init__(self, cell: Cell, direction: Vector, electron_energy: float, *,
+    def __init__(self, cell: Cell, direction: Vector, electron_energy: float, grid: (int, int, int) = (5,5,5),*,
                   ds_cutoff: float = 1e-3, distance_correction: Union[None, Literal["exponential"], Literal["gaussian"]] = None) -> DiffractionExperiment:
         """
         This class represents a diffraction experiment and calculates the diffraction using the Ewald sphere method on projects the reciprocal lattice points fulfilling the scattering condition on a plane normal to the incoming electron beam as would be the case for a planar detector. 
@@ -127,6 +127,8 @@ class DiffractionExperiment:
             direction of the incoming electron beam in reciprocal lattice coordinates of cell
         electron_energy : float
             electron energy in kV
+        grid : (int, int, int)
+        defines the size of the reciprocal grid through which the cut with the Ewald sphere is performed. Input is a tuple (nx, ny, nz) which defines an isotropic grid size around the reciprocal space origin (0,0,0) with +-ni points for each direction. For example (10,10,10) gives (-10, 0, 0), (-9,0,0), ... ,(0,0,0), ..., (10,0,0); (-10,-10,0),(-9,-10,0),... and so on. by default (5,5,5)
         ds_cutoff : float, optional
             In reality, the scattering condition is not only fulfilled if the Gamma point lies on the Ewald sphere but in a region around the Gamma point due to mosaicity, crystal size effects etc. This value gives the cutoff ratio in which range the scattering condition is viewed as fulfilled, i.e. if |(distance to Ewald sphere)/(radius of Ewald sphere)| < ds_cutoff reciprocal lattice point fulfills scattering condition. by default 1e-3,
         distance_correction :  None, "exponential", "gaussian", optional
@@ -140,6 +142,7 @@ class DiffractionExperiment:
         self._cell = cell
         self._direction = direction
         self._electron_energy = electron_energy
+        self._grid = grid
         self._ewald_diffraction_kwargs = [ds_cutoff, distance_correction]
 
         self._experiment_setup()
@@ -148,7 +151,32 @@ class DiffractionExperiment:
         """
         set up diffraction experiment
         """
-        pass
+        # make k_vector incoming k-vector
+        self._direction = ( 2 * np.pi / electron_wavelength(self.electron_energy) ) ( 1 / self._direction.abs_global) * self._direction
+        
+        # Ewald diffraction  
+        reflections, structure_factor, ds = ewald_diffraction(
+            self.direction, self.cell, self.grid, *self._ewald_diffraction_kwargs
+        )
+        
+        # make "Ewald plane"
+        # incoming k-vector is normal vector 
+        self.diffraction_plane = Plane(Vector([0,0,0], self.cell.reciprocal_lattice), self.direction)
+        
+        # project Bragg reflections onto plane
+        # save old coordinates as (hkl) labels
+        self.hkl = []
+        self.reflections = []
+        self.structure_factor = structure_factor
+        self.ds = ds
+
+        to_plane_coordinates = BasisTransformation(self.cell.reciprocal_lattice, self.diffraction_plane.basis)
+
+        for reflection in reflections:
+            self.hkl.append(f"({reflection[0]} {reflection[1]} {reflection[2]})")
+            _reflection_in_plane_coordinates = to_plane_coordinates.transform(reflection)
+            _reflection_in_plane_coordinates[2] = 0
+            self.reflections.append(_reflection_in_plane_coordinates)
 
     @property
     def cell(self):
@@ -162,6 +190,10 @@ class DiffractionExperiment:
     def electron_energy(self):
         return self._electron_energy
     
+    @property
+    def grid(self):
+        return self._grid
+    
     @setter.direction
     def direction(self, direction_new):
         self._direction = direction_new
@@ -171,3 +203,8 @@ class DiffractionExperiment:
     def electron_energy(self, electron_energy_new):
         self._electron_energy = electron_energy_new
         self._experiment_setup()   
+
+    @setter.grid
+    def grid(self, grid_new):
+        self._grid = grid_new
+        self._experiment_setup()
