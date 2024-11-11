@@ -513,25 +513,8 @@ class Plane:
                 self._basis.permute((1, 3, 2))
 
             self._basis.offset = self.origin.global_coord
-        # parallel to x,y or z axis
-        elif np.count_nonzero(self.parametric_form[:-1] == 0) == 1:
-            if self.parametric_form[0] == 0:  # x-axis
-                self._basis = Basis(
-                    [0, np.sqrt(2), np.sqrt(2)], [0, -1 * np.sqrt(2), np.sqrt(2)], [1, 0, 0]
-                )
 
-            elif self.parametric_form[1] == 0:  # y-axis
-                self._basis = Basis(
-                    [np.sqrt(2), 0, np.sqrt(2)], [np.sqrt(2), 0, -1 * np.sqrt(2)], [0, 1, 0]
-                )
-
-            elif self.parametric_form[2] == 0:  # z-axis
-                self._basis = Basis(
-                    [np.sqrt(2), np.sqrt(2), 0], [-1 * np.sqrt(2), np.sqrt(2), 0], [0, 0, 1],
-                )
-
-            self._basis.offset = self.origin.global_coord
-            # plane with no restrictions
+        # plane with no restrictions
         else:
             _origin = Vector(self.origin.global_coord)
             _x_intsec = Vector([self.parametric_form[3] / self.parametric_form[0], 0, 0])
