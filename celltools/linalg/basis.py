@@ -554,9 +554,21 @@ class Plane:
             return
         # plane with origin on global origin
         elif np.all(self.origin.global_coord == np.array([0,0,0])):    
-            _basis3 = self.normal.global_coord / self.normal.abs_global
+            # this is a stupid solution but involves the least amount of math. We pretend the plane has the origin (1,1,1), calculate the basis vectors and then use them at the global origin...
 
-            #not implemented yet
+            self._origin = Vector((1,1,1))
+
+            _x_intsec = Vector([self.parametric_form[3] / self.parametric_form[0], 0, 0])
+            _basis3 = self.normal.global_coord / self.normal.abs_global
+            _basis1 = ((_x_intsec - self._origin) * (1 / Vector(_x_intsec - self._origin).abs_global)).global_coord
+            _basis2 = Vector(np.cross(_basis1, _basis3) * (
+                        1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
+            self._basis = Basis(_basis1, _basis2, _basis3)
+            
+            self._origin = Vector((0,0,0))
+
+            self.basis.offset = self.origin.global_coord
+          
 
             return
         # plane with no restrictions
