@@ -513,25 +513,53 @@ class Plane:
                 self._basis.permute((1, 3, 2))
 
             self._basis.offset = self.origin.global_coord
+
+            return
         # parallel to x,y or z axis
         elif np.count_nonzero(self.parametric_form[:-1] == 0) == 1:
+            # TODO: This works for now, but it would be better if one of the in-plane basis vectors would be the cartesian unit vector of the parallel axis. This is not hard to do, but not a priority
+            
+            _basis3 = self.normal.global_coord / self.normal.abs_global
+            
             if self.parametric_form[0] == 0:  # x-axis
+                _y_intsec = Vector([0, self.parametric_form[3] / self.parametric_form[1], 0])
+                _basis1 = ((_y_intsec - _origin) * (1 / Vector(_y_intsec - _origin).abs_global)).global_coord
+                _basis2 = Vector(np.cross(_basis1, _basis3) * (
+                        1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
                 self._basis = Basis(
-                    [0, np.sqrt(2), np.sqrt(2)], [0, -1 * np.sqrt(2), np.sqrt(2)], [1, 0, 0]
+                    _basis1, _basis2, _basis3
                 )
 
             elif self.parametric_form[1] == 0:  # y-axis
+                _x_intsec = Vector([self.parametric_form[3] / self.parametric_form[0], 0, 0])
+                _basis1 = ((_x_intsec - _origin) * (1 / Vector(_x_intsec - _origin).abs_global)).global_coord
+                _basis2 = Vector(np.cross(_basis1, _basis3) * (
+                        1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
+                
                 self._basis = Basis(
-                    [np.sqrt(2), 0, np.sqrt(2)], [np.sqrt(2), 0, -1 * np.sqrt(2)], [0, 1, 0]
+                    _basis1, _basis2, _basis3
                 )
 
             elif self.parametric_form[2] == 0:  # z-axis
+                _x_intsec = Vector([self.parametric_form[3] / self.parametric_form[0], 0, 0])
+                _basis1 = ((_x_intsec - _origin) * (1 / Vector(_x_intsec - _origin).abs_global)).global_coord
+                _basis2 = Vector(np.cross(_basis1, _basis3) * (
+                        1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
+                
                 self._basis = Basis(
-                    [np.sqrt(2), np.sqrt(2), 0], [-1 * np.sqrt(2), np.sqrt(2), 0], [0, 0, 1],
+                    _basis1, _basis2, _basis3
                 )
 
             self._basis.offset = self.origin.global_coord
-            # plane with no restrictions
+            return
+        # plane with origin on global origin
+        elif np.all(self.origin.global_coord == np.array([0,0,0])):    
+            _basis3 = self.normal.global_coord / self.normal.abs_global
+
+            #not implemented yet
+
+            return
+        # plane with no restrictions
         else:
             _origin = Vector(self.origin.global_coord)
             _x_intsec = Vector([self.parametric_form[3] / self.parametric_form[0], 0, 0])
@@ -545,3 +573,5 @@ class Plane:
                         1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
             self._basis = Basis(_basis1, _basis2, _basis3)
             self.basis.offset = self.origin.global_coord
+            
+            return
