@@ -522,33 +522,16 @@ class Plane:
             _basis3 = self.normal.global_coord / self.normal.abs_global
             
             if self.parametric_form[0] == 0:  # x-axis
-                _y_intsec = Vector([0, self.parametric_form[3] / self.parametric_form[1], 0])
-                _basis1 = ((_y_intsec - _origin) * (1 / Vector(_y_intsec - _origin).abs_global)).global_coord
-                _basis2 = Vector(np.cross(_basis1, _basis3) * (
-                        1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
-                self._basis = Basis(
-                    _basis1, _basis2, _basis3
-                )
+                _basis1 = [1,0,0]
 
             elif self.parametric_form[1] == 0:  # y-axis
-                _x_intsec = Vector([self.parametric_form[3] / self.parametric_form[0], 0, 0])
-                _basis1 = ((_x_intsec - _origin) * (1 / Vector(_x_intsec - _origin).abs_global)).global_coord
-                _basis2 = Vector(np.cross(_basis1, _basis3) * (
-                        1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
-                
-                self._basis = Basis(
-                    _basis1, _basis2, _basis3
-                )
-
+                _basis1 = [0,1,0]
             elif self.parametric_form[2] == 0:  # z-axis
-                _x_intsec = Vector([self.parametric_form[3] / self.parametric_form[0], 0, 0])
-                _basis1 = ((_x_intsec - _origin) * (1 / Vector(_x_intsec - _origin).abs_global)).global_coord
-                _basis2 = Vector(np.cross(_basis1, _basis3) * (
-                        1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
-                
-                self._basis = Basis(
-                    _basis1, _basis2, _basis3
-                )
+                 _basis1 = [0,0,1]
+            
+            _basis3 = self.normal.global_coord / self.normal.abs_global
+            _basis2 = np.cross(_basis1, _basis3)
+            self._basis = Basis(_basis1, _basis2, _basis3)
 
             self._basis.offset = self.origin.global_coord
             return
