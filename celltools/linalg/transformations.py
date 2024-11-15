@@ -16,6 +16,7 @@ class BasisTransformation:
     basis1: :class:`basis`
     basis2: :class:`basis`
     """
+
     def __init__(self, basis1: Basis, basis2: Basis):
 
         self.basis1 = basis1
@@ -65,23 +66,26 @@ class Rotation:
     axis: :class:`Vector`
         defining the axis of rotation
     """
+
     def __init__(self, angle: float, axis: Vector):
         self._angle = angle
         self._axis = axis.global_coord / axis.abs_global
         self._matrix = self._set_matrix()
 
     def __repr__(self) -> str:
-        return (f"< rotation around [{self.axis[0]:.2f}, {self.axis[1]:.2f}, {self.axis[2]:.2f}]"
-                f" about {self.angle:.2f} rad >")
+        return (
+            f"< rotation around [{self.axis[0]:.2f}, {self.axis[1]:.2f}, {self.axis[2]:.2f}]"
+            f" about {self.angle:.2f} rad >"
+        )
 
     @property
     def angle(self) -> float:
-        """ returns angle """
+        """returns angle"""
         return self._angle
 
     @property
     def axis(self) -> np.ndarray:
-        """ returns axis """
+        """returns axis"""
         return self._axis
 
     @angle.setter
@@ -113,17 +117,29 @@ class Rotation:
         return to_std_basis.inv_transform(_new_point)
 
     def _set_matrix(self) -> np.ndarray:
-        """ defines the rotation matrix - auxiliary function """
+        """defines the rotation matrix - auxiliary function"""
         return np.array(
             [
-             [cos(self.angle) + self.axis[0]**2 * (1-cos(self.angle)),
-              self.axis[0]*self.axis[1] * (1-cos(self.angle)) - self.axis[2] * sin(self.angle),
-              self.axis[0]*self.axis[2] * (1-cos(self.angle)) + self.axis[1] * sin(self.angle)],
-             [self.axis[1]*self.axis[0] * (1-cos(self.angle)) + self.axis[2] * sin(self.angle),
-              cos(self.angle) + self.axis[1] ** 2 * (1 - cos(self.angle)),
-              self.axis[1] * self.axis[2] * (1 - cos(self.angle)) - self.axis[0] * sin(self.angle)],
-             [self.axis[2] * self.axis[0] * (1 - cos(self.angle)) - self.axis[1] * sin(self.angle),
-              self.axis[2] * self.axis[1] * (1 - cos(self.angle)) + self.axis[0] * sin(self.angle),
-              cos(self.angle) + self.axis[2] ** 2 * (1 - cos(self.angle))]
+                [
+                    cos(self.angle) + self.axis[0] ** 2 * (1 - cos(self.angle)),
+                    self.axis[0] * self.axis[1] * (1 - cos(self.angle))
+                    - self.axis[2] * sin(self.angle),
+                    self.axis[0] * self.axis[2] * (1 - cos(self.angle))
+                    + self.axis[1] * sin(self.angle),
+                ],
+                [
+                    self.axis[1] * self.axis[0] * (1 - cos(self.angle))
+                    + self.axis[2] * sin(self.angle),
+                    cos(self.angle) + self.axis[1] ** 2 * (1 - cos(self.angle)),
+                    self.axis[1] * self.axis[2] * (1 - cos(self.angle))
+                    - self.axis[0] * sin(self.angle),
+                ],
+                [
+                    self.axis[2] * self.axis[0] * (1 - cos(self.angle))
+                    - self.axis[1] * sin(self.angle),
+                    self.axis[2] * self.axis[1] * (1 - cos(self.angle))
+                    + self.axis[0] * sin(self.angle),
+                    cos(self.angle) + self.axis[2] ** 2 * (1 - cos(self.angle)),
+                ],
             ]
         )

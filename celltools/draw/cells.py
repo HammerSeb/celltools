@@ -17,10 +17,14 @@ def _add_atom(GLPts: GLPoints, atom: Atom):
     GLPts: :class:`GlPoints`
     atom: :class:`Atom`
     """
-    GLPts.add_point(atom.coords, ELEM_TO_SIZE(atom.element), ELEM_TO_COLOR(atom.element))
+    GLPts.add_point(
+        atom.coords, ELEM_TO_SIZE(atom.element), ELEM_TO_COLOR(atom.element)
+    )
 
 
-def _add_molecule(GLPts: GLPoints, molc: Molecule, GLLns: Optional[GLLines], lw: Optional[float] = 4):
+def _add_molecule(
+    GLPts: GLPoints, molc: Molecule, GLLns: Optional[GLLines], lw: Optional[float] = 4
+):
     """
     adds the atoms of a molecule to GLPoints objects. If a GLLines object is given, the bonds of the molecule are added
     as lines.
@@ -31,7 +35,9 @@ def _add_molecule(GLPts: GLPoints, molc: Molecule, GLLns: Optional[GLLines], lw:
     GLLns: :class:`GLLines` (Optional)
     """
     for atm in molc.atoms:
-        GLPts.add_point(atm.coords, ELEM_TO_SIZE(atm.element), ELEM_TO_COLOR(atm.element))
+        GLPts.add_point(
+            atm.coords, ELEM_TO_SIZE(atm.element), ELEM_TO_COLOR(atm.element)
+        )
     if GLLns:
         for bond in molc.bonds:
             if bond.bond[0].atomic_number > bond.bond[1].atomic_number:
@@ -41,7 +47,10 @@ def _add_molecule(GLPts: GLPoints, molc: Molecule, GLLns: Optional[GLLines], lw:
             GLLns.add_line(bond.bond[0].coords, bond.bond[1].coords, c=color)
         GLLns.set_linewidth(lw)
 
-def compact_content(content: List[Union[GLPoints, GLLines]]) -> List[Tuple[GLPoints, GLLines]]:
+
+def compact_content(
+    content: List[Union[GLPoints, GLLines]]
+) -> List[Tuple[GLPoints, GLLines]]:
     """
     auxillary function which takes a content list from draw_cell or draw_supercell and adds :class:`GLPoints` and
     :class:`GLLines` objects whcih belong together in one tuple.
@@ -59,11 +68,14 @@ def compact_content(content: List[Union[GLPoints, GLLines]]) -> List[Tuple[GLPoi
     """
     content_new = []
     for _i, cnt in enumerate(content[::2]):
-        content_new.append((cnt, content[2*_i+1]))
+        content_new.append((cnt, content[2 * _i + 1]))
     return content_new
 
 
-def highlight_molecule(gl_molecule: Union[GLPoints, Tuple[GLPoints, GLLines]], color: RGBALike = [1, 0, 0, 1]):
+def highlight_molecule(
+    gl_molecule: Union[GLPoints, Tuple[GLPoints, GLLines]],
+    color: RGBALike = [1, 0, 0, 1],
+):
     """
 
     Parameters
@@ -82,10 +94,13 @@ def highlight_molecule(gl_molecule: Union[GLPoints, Tuple[GLPoints, GLLines]], c
     else:
         number_of_atoms = gl_molecule[0].pos.shape[0]
         number_of_bonds = gl_molecule[1].pos.shape[0]
-        c = [np.array([color for i in range(number_of_atoms)]),
-             np.array([color for i in range(number_of_bonds)])]
+        c = [
+            np.array([color for i in range(number_of_atoms)]),
+            np.array([color for i in range(number_of_bonds)]),
+        ]
         gl_molecule[0].setData(color=c[0])
         gl_molecule[1].setData(color=c[1])
+
 
 def draw_cell(w: gl.GLViewWidget, cell: Cell, lw: float = 3) -> List:
     """

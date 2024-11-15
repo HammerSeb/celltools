@@ -1,15 +1,16 @@
-
 from typing import List, Tuple
 import numpy as np
 from .diffraction_from_cell import diffraction_from_cell
 from .diffraction_from_supercell import diffraction_from_supercell
 
 
-
 def _gaussian(x: np.ndarray, A: float, w: float, xc: float) -> np.ndarray:
-    return A / (w * np.sqrt(2 * np.pi)) * np.exp(- np.square(x - xc) / (2 * w **2))
+    return A / (w * np.sqrt(2 * np.pi)) * np.exp(-np.square(x - xc) / (2 * w**2))
 
-def powder_pattern(q: np.ndarray, scatt_vec: List[float], amp: List[complex], w: float = 0.05) -> np.ndarray:
+
+def powder_pattern(
+    q: np.ndarray, scatt_vec: List[float], amp: List[complex], w: float = 0.05
+) -> np.ndarray:
     """
     simulate a powder pattern from a list of scattering vectors and complex scattering amplitudes. A gaussian peak is
     used to imitate finite size broadening
@@ -31,5 +32,5 @@ def powder_pattern(q: np.ndarray, scatt_vec: List[float], amp: List[complex], w:
     """
     intensity = np.zeros_like(q)
     for _scatt_vec, _amp in zip(scatt_vec, amp):
-        intensity += _gaussian(q, np.abs(_amp)**2, w, _scatt_vec)
+        intensity += _gaussian(q, np.abs(_amp) ** 2, w, _scatt_vec)
     return intensity

@@ -24,8 +24,13 @@ class GLPoints(gl.GLScatterPlotItem):
     color: np.ndarray size (N, 4)
         list of point colors in rgba
     """
-    def __init__(self, pos: Optional[Union[List[Vector], np.ndarray]] = [], size: Optional[np.ndarray] = [],
-                 color: Optional[np.ndarray] = []):
+
+    def __init__(
+        self,
+        pos: Optional[Union[List[Vector], np.ndarray]] = [],
+        size: Optional[np.ndarray] = [],
+        color: Optional[np.ndarray] = [],
+    ):
         if pos:
             if isinstance(pos[0], type(pos[-1])):
                 _pos = []
@@ -85,6 +90,7 @@ class GLLines(gl.GLLinePlotItem):
         keep size in mind of arrays in mind. Class methods to set color and size might be easier.
         mode is always set to "lines".
     """
+
     def __init__(self, pos: Optional[Union[List[Vector], np.ndarray]] = [], **kwargs):
         if pos:
             if len(pos) % 2 == 0:
@@ -105,8 +111,12 @@ class GLLines(gl.GLLinePlotItem):
         else:
             super().__init__(mode="lines", **kwargs)
 
-    def add_line(self, coord1: Union[Vector, np.ndarray], coord2: Union[Vector, np.ndarray],
-                 c: Optional[np.ndarray] = None):
+    def add_line(
+        self,
+        coord1: Union[Vector, np.ndarray],
+        coord2: Union[Vector, np.ndarray],
+        c: Optional[np.ndarray] = None,
+    ):
         """
         adds a line between the points at coord1 and coord2 to GLLine object.
         Parameters
@@ -150,7 +160,9 @@ class GLLines(gl.GLLinePlotItem):
         self.setData(width=lw)
 
 
-def make_figure(grid: bool = True, distance: float = 20, title: str = "celltools draw", **kwargs) -> gl.GLViewWidget:
+def make_figure(
+    grid: bool = True, distance: float = 20, title: str = "celltools draw", **kwargs
+) -> gl.GLViewWidget:
     """
     creates pyqtgraph.opengl.GLViewWidget which is used as a "canvas" for 3D drawing.
     Parameters
@@ -202,7 +214,18 @@ def draw_basis(w: gl.GLViewWidget, basis: Basis, lw: float = 3) -> GLLines:
     _pairs = list(chain(*[[_origin, Vector(v)] for v in basis]))
     lns = GLLines(pos=_pairs)
     lns.set_linewidth(lw)
-    lns.setData(color=np.array([[1, 0, 0, 1], [1, 0, 0, 1], [0, 1, 0, 1], [0, 1, 0, 1], [0, 0, 1, 1], [0, 0, 1, 1]]))
+    lns.setData(
+        color=np.array(
+            [
+                [1, 0, 0, 1],
+                [1, 0, 0, 1],
+                [0, 1, 0, 1],
+                [0, 1, 0, 1],
+                [0, 0, 1, 1],
+                [0, 0, 1, 1],
+            ]
+        )
+    )
     w.addItem(lns)
     return lns
 
@@ -225,26 +248,40 @@ def draw_frame(w: gl.GLViewWidget, basis: Basis, lw: float = 1.5) -> GLLines:
     """
     _origin = Vector(basis.offset)
     _a, _b, _c = Vector(basis.basis[0]), Vector(basis.basis[1]), Vector(basis.basis[2])
-    _pairs = list(chain(
-        *[[_origin, _origin + _a], [_origin, _origin + _b], [_origin + _a, _origin + _a + _b],
-          [_origin + _b, _origin + _a + _b],
-          # bottom
-          [_origin, _origin + _c], [_origin + _a, _origin + _a + _c], [_origin + _b, _origin + _c + _b],
-          [_origin + _a + _b, _origin + _a + _b + _c],
-          # sides
-          [_origin + _c, _origin + _a + _c], [_origin + _c, _origin + _b + _c],
-          [_origin + _a + _c, _origin + _a + _b + _c], [_origin + _b + _c, _origin + _a + _b + _c]
-          # top
-          ]
-    ))
+    _pairs = list(
+        chain(
+            *[
+                [_origin, _origin + _a],
+                [_origin, _origin + _b],
+                [_origin + _a, _origin + _a + _b],
+                [_origin + _b, _origin + _a + _b],
+                # bottom
+                [_origin, _origin + _c],
+                [_origin + _a, _origin + _a + _c],
+                [_origin + _b, _origin + _c + _b],
+                [_origin + _a + _b, _origin + _a + _b + _c],
+                # sides
+                [_origin + _c, _origin + _a + _c],
+                [_origin + _c, _origin + _b + _c],
+                [_origin + _a + _c, _origin + _a + _b + _c],
+                [_origin + _b + _c, _origin + _a + _b + _c],
+                # top
+            ]
+        )
+    )
     lns = GLLines(pos=_pairs)
     lns.set_linewidth(lw)
     w.addItem(lns)
     return lns
 
 
-def draw_line(w: gl.GLViewWidget, line: Line, range: Tuple[float, float] = (-1, 1), lw: float = 1.5,
-              c: RGBALike = [1, 1, 1, 1]):
+def draw_line(
+    w: gl.GLViewWidget,
+    line: Line,
+    range: Tuple[float, float] = (-1, 1),
+    lw: float = 1.5,
+    c: RGBALike = [1, 1, 1, 1],
+):
     """
     draws a line from a :class:`Line` object and adds it to view widget.
     Parameters
@@ -261,14 +298,22 @@ def draw_line(w: gl.GLViewWidget, line: Line, range: Tuple[float, float] = (-1, 
     c: list or np.ndarray size (4,)
         line color as rgba. Default is [1,1,1,1]
     """
-    _pos = np.array([line.point_on_line(range[0]).global_coord, line.point_on_line(range[1]).global_coord])
+    _pos = np.array(
+        [
+            line.point_on_line(range[0]).global_coord,
+            line.point_on_line(range[1]).global_coord,
+        ]
+    )
     _line = gl.GLLinePlotItem(pos=_pos, width=lw, color=c)
     w.addItem(_line)
 
 
-def draw_plane(w: gl.GLViewWidget, plane: Plane,
-               range: Tuple[Tuple[float, float], Tuple[float, float]] = [(-5, 5), (-5, 5)],
-               c: RGBALike = [1, 0, 0, 0.7]):
+def draw_plane(
+    w: gl.GLViewWidget,
+    plane: Plane,
+    range: Tuple[Tuple[float, float], Tuple[float, float]] = [(-5, 5), (-5, 5)],
+    c: RGBALike = [1, 0, 0, 0.7],
+):
     """
     draws a plane from a :class:`Plane` object and adds it to view widget.
     Parameters
@@ -285,12 +330,22 @@ def draw_plane(w: gl.GLViewWidget, plane: Plane,
     c: list or np.ndarray size (4,)
         plane color as rgba. Default is [1, 0, 0, .7]
     """
-    _corners = np.array([range[0][0] * plane.basis[0]+plane.basis.offset,
-                         range[0][1] * plane.basis[0]+plane.basis.offset,
-                         range[1][0] * plane.basis[1]+plane.basis.offset,
-                         range[1][1] * plane.basis[1]+plane.basis.offset])
+    _corners = np.array(
+        [
+            range[0][0] * plane.basis[0] + plane.basis.offset,
+            range[0][1] * plane.basis[0] + plane.basis.offset,
+            range[1][0] * plane.basis[1] + plane.basis.offset,
+            range[1][1] * plane.basis[1] + plane.basis.offset,
+        ]
+    )
     _face = np.array([[0, 1, 2], [3, 1, 0]])
     _colors = np.array([c, c])
-    _plane = gl.GLMeshItem(vertexes=_corners, faces=_face, faceColors=_colors, shader="balloon", smooth=True,
-                           glOptions="additive")
+    _plane = gl.GLMeshItem(
+        vertexes=_corners,
+        faces=_face,
+        faceColors=_colors,
+        shader="balloon",
+        smooth=True,
+        glOptions="additive",
+    )
     w.addItem(_plane)

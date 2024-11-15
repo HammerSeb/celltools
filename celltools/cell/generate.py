@@ -13,10 +13,12 @@ from numpy import deg2rad, cos, sin, sqrt
 from celltools.cell.spacegroup_data import SPACE_GROUP, read_sym_file
 from celltools.cell.tools import generate_from_symmetry, create_SymmetryOperator
 from celltools.linalg import Basis, Vector, BasisTransformation, standard_basis
-from . import Atom, Bond , Molecule, Lattice, Cell
+from . import Atom, Bond, Molecule, Lattice, Cell
 
 
-def lattice_from_cell_parameters(a: float, b: float, c: float, alpha: float, beta: float, gamma: float) -> Lattice:
+def lattice_from_cell_parameters(
+    a: float, b: float, c: float, alpha: float, beta: float, gamma: float
+) -> Lattice:
     """
     generates a :class:`Lattice` from given cell parameters
     Parameters
@@ -39,12 +41,14 @@ def lattice_from_cell_parameters(a: float, b: float, c: float, alpha: float, bet
         :class:`Lattice`
     """
     vec_a = np.array([a, 0, 0])
-    vec_b = np.array([b * cos(deg2rad(gamma)),
-                      b * sin(deg2rad(gamma)),
-                      0])
+    vec_b = np.array([b * cos(deg2rad(gamma)), b * sin(deg2rad(gamma)), 0])
     _c1 = c * cos(deg2rad(beta))
-    _c2 = c * (cos(deg2rad(alpha)) - cos(deg2rad(beta)) * cos(deg2rad(gamma))) / sin(deg2rad(gamma))
-    _c3 = sqrt(c ** 2 - _c1 ** 2 - _c2 ** 2)
+    _c2 = (
+        c
+        * (cos(deg2rad(alpha)) - cos(deg2rad(beta)) * cos(deg2rad(gamma)))
+        / sin(deg2rad(gamma))
+    )
+    _c3 = sqrt(c**2 - _c1**2 - _c2**2)
     vec_c = np.array([_c1, _c2, _c3])
     return Lattice(Basis(vec_a, vec_b, vec_c))
 
@@ -90,7 +94,9 @@ def cell_to_crystal(cell: Cell) -> Crystal:
     return Crystal(AtomicStructure(_atoms), _lattice.lattice_vectors)
 
 
-def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Literal["sym"]] = "sym") -> Cell:
+def cell_from_cif(
+    file: Union[str, PathLike], mode: Union[Literal["file"], Literal["sym"]] = "sym"
+) -> Cell:
     """
     Generatures a :class:`Cell` from a given cif (crystallographic information framework). Supported data type is cif1!
     Disclaimer: In general, this function is a mess, handle with care and alsways check the unit cell you are generating
@@ -114,23 +120,39 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
     """
     cif = ReadCif(file)[ReadCif(file).keys()[0]]
 
-    ltt_blocks = ["_cell_length_a", "_cell_length_b", "_cell_length_c",
-                  "_cell_angle_alpha", "_cell_angle_beta", "_cell_angle_gamma"]
+    ltt_blocks = [
+        "_cell_length_a",
+        "_cell_length_b",
+        "_cell_length_c",
+        "_cell_angle_alpha",
+        "_cell_angle_beta",
+        "_cell_angle_gamma",
+    ]
 
     # creating lattice from cif
     _latt_params = []
     for block in ltt_blocks:
-        _latt_params.append(float(re.findall(r'\d*\.?\d*',cif[block])[0]))
+        _latt_params.append(float(re.findall(r"\d*\.?\d*", cif[block])[0]))
     _latt = lattice_from_cell_parameters(*_latt_params)
 
     _elem = list(map(lambda label: re.findall(r"\D+", label), cif["_atom_site_label"]))
-    _coords = list(map(
-        lambda coord: Vector([float(re.findall(r'\-?\d*\.?\d*', coord[0])[0]),
-                              float(re.findall(r'\-?\d*\.?\d*',coord[1])[0]),
-                              float(re.findall(r'\-?\d*\.?\d*',coord[2])[0])],
-                              _latt),
-        zip(cif["_atom_site_fract_x"], cif["_atom_site_fract_y"], cif["_atom_site_fract_z"])
-    ))
+    _coords = list(
+        map(
+            lambda coord: Vector(
+                [
+                    float(re.findall(r"\-?\d*\.?\d*", coord[0])[0]),
+                    float(re.findall(r"\-?\d*\.?\d*", coord[1])[0]),
+                    float(re.findall(r"\-?\d*\.?\d*", coord[2])[0]),
+                ],
+                _latt,
+            ),
+            zip(
+                cif["_atom_site_fract_x"],
+                cif["_atom_site_fract_y"],
+                cif["_atom_site_fract_z"],
+            ),
+        )
+    )
     _atms = []
     for el, coord, label in zip(_elem, _coords, cif["_atom_site_label"]):
         _atms.append(Atom(el[0], coord, label))
@@ -140,9 +162,9 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
     elif "_space_group_it_number" in cif:
         sg_number = cif["_space_group_it_number"]
     else:
-        sg_number = '0'
+        sg_number = "0"
 
-    if mode == 'sym':
+    if mode == "sym":
         _atmssym = []
         symmetries = []
         if "_space_group_symop_operation_xyz" in cif:
@@ -178,7 +200,9 @@ def cell_from_cif(file: Union[str, PathLike], mode: Union[Literal["file"], Liter
         return Cell(_latt, _atms)
 
 
-def qe_export_molecule(molc: Molecule, file: Optional[Union[str, PathLike]] = None) -> None:
+def qe_export_molecule(
+    molc: Molecule, file: Optional[Union[str, PathLike]] = None
+) -> None:
     """
     Exports atom coordinates to ATOMIC_SPECIES and ATOMIC_POSITIONS card  as well as nat and ntyp values.
     Units of Angstrom are assumed for export of atomic positions in the standard basis. Use ibrav=0 or ibrav=1.
@@ -201,7 +225,7 @@ def qe_export_molecule(molc: Molecule, file: Optional[Union[str, PathLike]] = No
     lines.append("&SYSTEM\n")
     lines.append(f"nat = {len(molc.atoms)}\n")
     lines.append(f"ntyp = {len(_elements)}\n")
-    lines.append('\n')
+    lines.append("\n")
 
     lines.append("ATOMIC_SPECIES\n")
     for atm in _atomtypes:
@@ -215,7 +239,9 @@ def qe_export_molecule(molc: Molecule, file: Optional[Union[str, PathLike]] = No
     lines.append("ATOMIC_POSITIONS 'angstrom'\n")
     for atm in molc.atoms:
         _coords = to_std_basis.transform(atm.coords)
-        lines.append(f"{atm.label} {_coords[0]:.10f} {_coords[1]:.10f} {_coords[2]:.10f}\n")
+        lines.append(
+            f"{atm.label} {_coords[0]:.10f} {_coords[1]:.10f} {_coords[2]:.10f}\n"
+        )
 
     if not file:
         for line in lines:
@@ -247,7 +273,7 @@ def qe_export_cell(cell: Cell, file: Optional[Union[str, PathLike]] = None) -> N
     _atomtypes = []
     nat = 0
     for atm in cell.atoms:
-        nat +=1
+        nat += 1
         if atm.element not in _elements:
             _elements.append(atm.element)
             _atomtypes.append(atm)
@@ -261,7 +287,7 @@ def qe_export_cell(cell: Cell, file: Optional[Union[str, PathLike]] = None) -> N
     lines.append("&SYSTEM\n")
     lines.append(f"nat = {nat}\n")
     lines.append(f"ntyp = {len(_elements)}\n")
-    lines.append('\n')
+    lines.append("\n")
 
     lines.append("ATOMIC_SPECIES\n")
     for atm in _atomtypes:
@@ -271,10 +297,14 @@ def qe_export_cell(cell: Cell, file: Optional[Union[str, PathLike]] = None) -> N
     ### ATOMIC_POSITIONS CARD
     lines.append("ATOMIC_POSITIONS 'crystal'\n")
     for atm in cell.atoms:
-        lines.append(f"{atm.element} {atm.coords[0]:.10f} {atm.coords[1]:.10f} {atm.coords[2]:.10f}\n")
+        lines.append(
+            f"{atm.element} {atm.coords[0]:.10f} {atm.coords[1]:.10f} {atm.coords[2]:.10f}\n"
+        )
     for molc in cell.molecules:
         for atm in molc.atoms:
-            lines.append(f"{atm.element} {atm.coords[0]:.10f} {atm.coords[1]:.10f} {atm.coords[2]:.10f}\n")
+            lines.append(
+                f"{atm.element} {atm.coords[0]:.10f} {atm.coords[1]:.10f} {atm.coords[2]:.10f}\n"
+            )
 
     if not file:
         for line in lines:
@@ -302,7 +332,7 @@ def save_cell(cell: Cell, file: str) -> None:
         f.write(f"no_of_atoms: {len(cell.atoms)}\n")
         f.write(f"no_of_molecules: {len(cell.molecules)}\n")
         if cell.molecules:
-            for idx,molc in enumerate(cell.molecules):
+            for idx, molc in enumerate(cell.molecules):
                 f.write(f"no_of_atoms_molecule_{idx+1}: {len(molc.atoms)}\n")
         f.write("\n")
 
@@ -317,9 +347,11 @@ def save_cell(cell: Cell, file: str) -> None:
         if cell.atoms:
             f.write("<----- ATOMS ----->\n")
             for atm in cell.atoms:
-                f.write(f"{atm.element}\t"
-                        f"{atm.label}\t"
-                        f"{atm.coords[0]}\t{atm.coords[1]}\t{atm.coords[2]}\n")
+                f.write(
+                    f"{atm.element}\t"
+                    f"{atm.label}\t"
+                    f"{atm.coords[0]}\t{atm.coords[1]}\t{atm.coords[2]}\n"
+                )
 
         ###MOLECULES
         if cell.molecules:
@@ -327,9 +359,11 @@ def save_cell(cell: Cell, file: str) -> None:
             for idx, molc in enumerate(cell.molecules):
                 f.write(f"===== MOLECULE {idx+1} =====\n")
                 for atm in molc.atoms:
-                        f.write(f"{atm.element}\t"
+                    f.write(
+                        f"{atm.element}\t"
                         f"{atm.label}\t"
-                        f"{atm.coords[0]}\t{atm.coords[1]}\t{atm.coords[2]}\n")
+                        f"{atm.coords[0]}\t{atm.coords[1]}\t{atm.coords[2]}\n"
+                    )
                 f.write("\n")
                 for bnd in molc.bonds:
                     f.write(f"bond: {bnd.bond[0].label}\t{bnd.bond[1].label}\n")
@@ -379,23 +413,28 @@ def load_cell(file: str) -> None:
 
     # lattice
     lattice_lines = ""
-    for line in lines[i_lattice:i_lattice+5]:
+    for line in lines[i_lattice : i_lattice + 5]:
         lattice_lines += line
-    lattice_pattern = re.findall(r"(v\d = )\[\s*(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})\s+(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})\s+"
-                              r"(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})", lattice_lines)
+    lattice_pattern = re.findall(
+        r"(v\d = )\[\s*(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})\s+(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})\s+"
+        r"(\-?\d{1,}\.\d{0,}[e]?\-?\+?\d{0,2})",
+        lattice_lines,
+    )
     v1 = np.array([float(coord) for coord in lattice_pattern[0][1:]])
     v2 = np.array([float(coord) for coord in lattice_pattern[1][1:]])
     v3 = np.array([float(coord) for coord in lattice_pattern[2][1:]])
-
 
     lattice = Lattice([v1, v2, v3])
     cell = Cell(lattice, [])
 
     # atoms
     if i_atoms:
-        for line in lines[i_atoms+1:i_atoms+1+no_of_atoms]:
-            atm_pattern = re.findall(r"([A-Z,a-z]+)\t([A-Z,a-z]+\d*)\t(\-?\d+\.?\d*)\t(\-?\d+\.?\d*)"
-                                     r"\t(\-?\d+\.?\d*)", line)[0]
+        for line in lines[i_atoms + 1 : i_atoms + 1 + no_of_atoms]:
+            atm_pattern = re.findall(
+                r"([A-Z,a-z]+)\t([A-Z,a-z]+\d*)\t(\-?\d+\.?\d*)\t(\-?\d+\.?\d*)"
+                r"\t(\-?\d+\.?\d*)",
+                line,
+            )[0]
             position = Vector([float(coord) for coord in atm_pattern[2:]], lattice)
             atm = Atom(atm_pattern[0], position)
             atm.label = atm_pattern[1]
@@ -405,20 +444,30 @@ def load_cell(file: str) -> None:
     if i_molecules:
         molecule_lines = lines[i_molecules:]
         for molecole_N in range(no_of_molecules):
-            indices = [i for i, _ in enumerate(molecule_lines) if _ == f"===== MOLECULE {molecole_N+1} =====\n"]
+            indices = [
+                i
+                for i, _ in enumerate(molecule_lines)
+                if _ == f"===== MOLECULE {molecole_N+1} =====\n"
+            ]
             atoms = []
             bond_patterns = []
-            for line in molecule_lines[indices[0]+1:indices[1]]:
+            for line in molecule_lines[indices[0] + 1 : indices[1]]:
                 if "=====" in line or "\n" == line:
                     continue
                 elif "bond" in line:
-                    pattern = re.findall(r"(bond: )([A-Z,a-z]{1,2}\d+)\t([A-Z,a-z]{1,2}\d+)", line)
-                    bond_patterns.append((pattern[0][1], pattern[0][2])
-                        )
+                    pattern = re.findall(
+                        r"(bond: )([A-Z,a-z]{1,2}\d+)\t([A-Z,a-z]{1,2}\d+)", line
+                    )
+                    bond_patterns.append((pattern[0][1], pattern[0][2]))
                 else:
-                    atm_pattern = re.findall(r"([A-Z,a-z]+)\t([A-Z,a-z]+\d*)\t(\-?\d+\.?\d*)\t(\-?\d+\.?\d*)"
-                                             r"\t(\-?\d+\.?\d*)", line)[0]
-                    position = Vector([float(coord) for coord in atm_pattern[2:]], lattice)
+                    atm_pattern = re.findall(
+                        r"([A-Z,a-z]+)\t([A-Z,a-z]+\d*)\t(\-?\d+\.?\d*)\t(\-?\d+\.?\d*)"
+                        r"\t(\-?\d+\.?\d*)",
+                        line,
+                    )[0]
+                    position = Vector(
+                        [float(coord) for coord in atm_pattern[2:]], lattice
+                    )
                     atm = Atom(atm_pattern[0], position)
                     atm.label = atm_pattern[1]
                     atoms.append(atm)
@@ -441,14 +490,6 @@ def load_cell(file: str) -> None:
             cell.add_molecule(Molecule(atoms, bonds))
 
     return cell
-
-
-
-
-
-
-
-
 
 
 def _export_atom_list_to_cif(atoms, file=None):

@@ -28,8 +28,12 @@ def move(obj: Union[Atom, Molecule], vec: Vector):
             atm.coords = atm.coords + to_mol_basis.inv_transform(vec)
 
 
-def rotate(obj: Union[Molecule, List[Atom]], axis: Line, angle: float,
-           mode: Union[Literal["deg"], Literal["rad"]] = "deg") -> None:
+def rotate(
+    obj: Union[Molecule, List[Atom]],
+    axis: Line,
+    angle: float,
+    mode: Union[Literal["deg"], Literal["rad"]] = "deg",
+) -> None:
     """
     rotates object counterclockwise around line about specified angle
     Parameters
@@ -104,15 +108,20 @@ class SuperCell(Cell):
         self._size = size
         self._atoms, self._molecules = [], []
         self.set_lattice(unit_cell.lattice)
-        self._basevectors = [Vector([1, 0, 0], self.lattice),
-                             Vector([0, 1, 0], self.lattice),
-                             Vector([0, 0, 1], self.lattice)]
+        self._basevectors = [
+            Vector([1, 0, 0], self.lattice),
+            Vector([0, 1, 0], self.lattice),
+            Vector([0, 0, 1], self.lattice),
+        ]
 
-        self._translation_vector = [l * Vector([1, 0, 0], self.lattice) +
-                                    m * Vector([0, 1, 0], self.lattice) +
-                                    n * Vector([0, 0, 1], self.lattice)
-                                    for (l, m, n) in
-                                    product(range(self.size[0]), range(self.size[1]), range(self.size[2]))]
+        self._translation_vector = [
+            l * Vector([1, 0, 0], self.lattice)
+            + m * Vector([0, 1, 0], self.lattice)
+            + n * Vector([0, 0, 1], self.lattice)
+            for (l, m, n) in product(
+                range(self.size[0]), range(self.size[1]), range(self.size[2])
+            )
+        ]
 
         for trans_vec in self._translation_vector:
             uc_atms, uc_molcs = unit_cell.base
@@ -144,8 +153,13 @@ class SymmetryOperator:
         Should be chosen to be Seitz Symbol {R/m axis | translation}
     """
 
-    def __init__(self, x_op: Callable, y_op: Callable, z_op: Callable, label: str ="Symmetry Operation") \
-            -> None:
+    def __init__(
+        self,
+        x_op: Callable,
+        y_op: Callable,
+        z_op: Callable,
+        label: str = "Symmetry Operation",
+    ) -> None:
         self._x_op = x_op
         self._y_op = y_op
         self._z_op = z_op
@@ -154,6 +168,7 @@ class SymmetryOperator:
 
     def __repr__(self):
         return f"< {self.label} >"
+
     @property
     def x_op(self):
         return self._x_op
@@ -182,14 +197,17 @@ def create_SymmetryOperator(generator_string: str) -> SymmetryOperator:
 
     """
     x_str, y_str, z_str = generator_string.split(",")
-    def x_op(x,y,z):
+
+    def x_op(x, y, z):
         return eval(x_str)
-    def y_op(x,y,z):
+
+    def y_op(x, y, z):
         return eval(y_str)
-    def z_op(x,y,z):
+
+    def z_op(x, y, z):
         return eval(z_str)
 
-    return SymmetryOperator(x_op, y_op, z_op,label=generator_string)
+    return SymmetryOperator(x_op, y_op, z_op, label=generator_string)
 
 
 def generate_from_symmetry(atom: Atom, operator: SymmetryOperator) -> Tuple[Atom, bool]:
@@ -214,10 +232,12 @@ def generate_from_symmetry(atom: Atom, operator: SymmetryOperator) -> Tuple[Atom
     _atm = copy(atom)
     _coords = _atm.coords
     _atm.coords = Vector(
-        [operator.x_op(_coords[0], _coords[1], _coords[2]),
-         operator.y_op(_coords[0], _coords[1], _coords[2]),
-         operator.z_op(_coords[0], _coords[1], _coords[2]),
-         ], _coords.basis
+        [
+            operator.x_op(_coords[0], _coords[1], _coords[2]),
+            operator.y_op(_coords[0], _coords[1], _coords[2]),
+            operator.z_op(_coords[0], _coords[1], _coords[2]),
+        ],
+        _coords.basis,
     )
     if _atm.label:
         _atm.label = _atm.label + "*"

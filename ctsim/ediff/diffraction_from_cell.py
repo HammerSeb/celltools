@@ -8,9 +8,12 @@ from celltools.linalg import Vector
 from celltools import Cell, SuperCell
 from celltools.cell.generate import cell_to_crystal
 
-IndexLike = Tuple[int, int ,int]
+IndexLike = Tuple[int, int, int]
 
-def diffraction_from_cell(hkl: List[IndexLike], cell: Cell) -> Tuple[List[Vector], List[complex]]:
+
+def diffraction_from_cell(
+    hkl: List[IndexLike], cell: Cell
+) -> Tuple[List[Vector], List[complex]]:
     """
     calculates the scattering vectors and respective structure factor as the complex scattering amplitude for a list of
     hkl indices from a unit cell. Uses structure_factor method from scikit-ued to calculate the structure factor.

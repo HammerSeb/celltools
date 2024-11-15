@@ -6,7 +6,8 @@ from numpy.linalg import det
 
 
 class LinearAlgebraError(Exception):
-    """ custom exception for linear algebra errors"""
+    """custom exception for linear algebra errors"""
+
     pass
 
 
@@ -37,7 +38,10 @@ def check_linear_independence() -> Callable:
 
 def parallel(vec1, vec2):
     """checks if two vectors are parallel in standard coordinates"""
-    if abs(np.dot(vec1.global_coord, vec2.global_coord)) == vec1.abs_global * vec2.abs_global:
+    if (
+        abs(np.dot(vec1.global_coord, vec2.global_coord))
+        == vec1.abs_global * vec2.abs_global
+    ):
         return True
     else:
         return False
@@ -71,18 +75,28 @@ class Basis:
     """
 
     @check_linear_independence()
-    def __init__(self, v1: VectorLike, v2: VectorLike, v3: VectorLike, offset: VectorLike = np.zeros((3,))):
+    def __init__(
+        self,
+        v1: VectorLike,
+        v2: VectorLike,
+        v3: VectorLike,
+        offset: VectorLike = np.zeros((3,)),
+    ):
         self._basis = np.array([v1, v2, v3])
 
         self._offset = offset
 
     def __repr__(self) -> str:
-        return f'<basis {self.basis[0]}, {self.basis[1]}, {self.basis[2]}>'
+        return f"<basis {self.basis[0]}, {self.basis[1]}, {self.basis[2]}>"
 
-    def __eq__(self, other: 'Basis') -> bool:
-        """ checks only if all basis vectors are the same, does not check for offset! """
+    def __eq__(self, other: "Basis") -> bool:
+        """checks only if all basis vectors are the same, does not check for offset!"""
         if isinstance(other, Basis):
-            if np.all(self.v1 == other.v1) and np.all(self.v2 == other.v2) and np.all(self.v3 == other.v3):
+            if (
+                np.all(self.v1 == other.v1)
+                and np.all(self.v2 == other.v2)
+                and np.all(self.v3 == other.v3)
+            ):
                 return True
             else:
                 return False
@@ -104,12 +118,12 @@ class Basis:
 
     @property
     def basis(self) -> np.ndarray:
-        """ returns basis systems """
+        """returns basis systems"""
         return self._basis
 
     @property
     def offset(self) -> np.ndarray:
-        """ returns offset """
+        """returns offset"""
         return self._offset
 
     @property
@@ -152,7 +166,13 @@ class Basis:
         if np.sum(order) != 6:
             raise ValueError("order must be given in integers of 1,2 and 3 only")
         else:
-            self._basis = np.array([self._basis[order[0] - 1], self._basis[order[1] - 1], self._basis[order[2] - 1]])
+            self._basis = np.array(
+                [
+                    self._basis[order[0] - 1],
+                    self._basis[order[1] - 1],
+                    self._basis[order[2] - 1],
+                ]
+            )
 
 
 standard_basis = Basis([1, 0, 0], [0, 1, 0], [0, 0, 1])
@@ -171,6 +191,7 @@ class Vector:
     basis: :class:`Basis`
         basis in which coordinates are specified. default is standard_basis
     """
+
     def __init__(self, vector: VectorLike, basis: Basis = standard_basis):
 
         self.vector = np.array([vector[0], vector[1], vector[2]])
@@ -179,48 +200,64 @@ class Vector:
     def __repr__(self) -> str:
         return f"{self.vector}"
 
-    def __add__(self, other: 'Vector') -> 'Vector':
-        """ addition of 2 vector instances """
+    def __add__(self, other: "Vector") -> "Vector":
+        """addition of 2 vector instances"""
         if not np.all(self.basis == other.basis):
             raise LinearAlgebraError("basis do not match")
         else:
-            return Vector([self.vector[0] + other.vector[0],
-                           self.vector[1] + other.vector[1],
-                           self.vector[2] + other.vector[2]],
-                          self.basis)
+            return Vector(
+                [
+                    self.vector[0] + other.vector[0],
+                    self.vector[1] + other.vector[1],
+                    self.vector[2] + other.vector[2],
+                ],
+                self.basis,
+            )
 
-    def __sub__(self, other: 'Vector') -> 'Vector':
-        """ subtraction of 2 vector instances """
+    def __sub__(self, other: "Vector") -> "Vector":
+        """subtraction of 2 vector instances"""
         if not self.basis == other.basis:
             raise LinearAlgebraError("basis do not match")
         else:
-            return Vector([self.vector[0] - other.vector[0],
-                           self.vector[1] - other.vector[1],
-                           self.vector[2] - other.vector[2]],
-                          self.basis)
+            return Vector(
+                [
+                    self.vector[0] - other.vector[0],
+                    self.vector[1] - other.vector[1],
+                    self.vector[2] - other.vector[2],
+                ],
+                self.basis,
+            )
 
-    def __mul__(self, other: float) -> 'Vector':
-        """ multiplication with a scalar """
+    def __mul__(self, other: float) -> "Vector":
+        """multiplication with a scalar"""
         if isinstance(other, float) or isinstance(other, int):
-            return Vector([self.vector[0] * other,
-                           self.vector[1] * other,
-                           self.vector[2] * other],
-                          self.basis)
+            return Vector(
+                [
+                    self.vector[0] * other,
+                    self.vector[1] * other,
+                    self.vector[2] * other,
+                ],
+                self.basis,
+            )
         else:
             raise ValueError("only scalar multiplication with real numbers allowed")
 
-    def __rmul__(self, other: float) -> 'Vector':
-        """ multiplication with a scalar """
+    def __rmul__(self, other: float) -> "Vector":
+        """multiplication with a scalar"""
         if isinstance(other, float) or isinstance(other, int):
-            return Vector([self.vector[0] * other,
-                           self.vector[1] * other,
-                           self.vector[2] * other],
-                          self.basis)
+            return Vector(
+                [
+                    self.vector[0] * other,
+                    self.vector[1] * other,
+                    self.vector[2] * other,
+                ],
+                self.basis,
+            )
         else:
             raise ValueError("only scalar multiplication with real numbers allowed")
 
-    def __eq__(self, other: 'Vector') -> bool:
-        """ checks if vectors are the same in global reference frame """
+    def __eq__(self, other: "Vector") -> bool:
+        """checks if vectors are the same in global reference frame"""
         if isinstance(other, Vector):
             return np.all(self.global_coord == other.global_coord)
         else:
@@ -250,18 +287,26 @@ class Vector:
     @property
     def global_coord(self) -> np.ndarray:
         """return vector in global coordinates"""
-        return self.vector[0] * self.basis[0] + self.vector[1] * self.basis[1] + self.vector[2] * self.basis[2]
+        return (
+            self.vector[0] * self.basis[0]
+            + self.vector[1] * self.basis[1]
+            + self.vector[2] * self.basis[2]
+        )
 
     @property
     def abs_global(self) -> float:
-        """ returns absolute length of vector in global reference frame """
-        return np.sqrt(self.global_coord[0] ** 2 + self.global_coord[1] ** 2 + self.global_coord[2] ** 2)
+        """returns absolute length of vector in global reference frame"""
+        return np.sqrt(
+            self.global_coord[0] ** 2
+            + self.global_coord[1] ** 2
+            + self.global_coord[2] ** 2
+        )
 
     @property
     def basis(self):
         return self._basis
 
-    def parallel(self, other: 'Vector') -> bool:
+    def parallel(self, other: "Vector") -> bool:
         """
         checks if vector is parallel to another vector
 
@@ -289,18 +334,21 @@ class Line:
     direction: :class:`Vector`
         defines direction of line
     """
+
     def __init__(self, origin: Vector, direction: Vector):
         if np.all(origin.basis == direction.basis):
             self._origin = origin
             self._direction = direction
             self._basis = self.origin.basis
         else:
-            raise LinearAlgebraError("input vectors need to be expressed in the same basis")
+            raise LinearAlgebraError(
+                "input vectors need to be expressed in the same basis"
+            )
 
     def __repr__(self) -> str:
         return f"< line: {self.origin} + k*{self.direction} >"
 
-    def __eq__(self, other: 'Line') -> bool:
+    def __eq__(self, other: "Line") -> bool:
         if isinstance(other, Line):
             if self.on_line(other.origin) and self.parallel(other):
                 return True
@@ -311,17 +359,17 @@ class Line:
 
     @property
     def origin(self) -> Vector:
-        """ return origin """
+        """return origin"""
         return self._origin
 
     @property
     def direction(self) -> Vector:
-        """ return direction """
+        """return direction"""
         return self._direction
 
     @property
     def basis(self) -> Basis:
-        """ return basis in which line is defined"""
+        """return basis in which line is defined"""
         return self._basis
 
     def on_line(self, point: Vector) -> bool:
@@ -335,17 +383,37 @@ class Line:
         -------
             bool
         """
-        if ((point.global_coord[0] - self.origin.global_coord[0]) / self.direction.global_coord[0]) == \
-                ((point.global_coord[1] - self.origin.global_coord[1]) / self.direction.global_coord[1]) and \
-                ((point.global_coord[1] - self.origin.global_coord[1]) / self.direction.global_coord[1]) == \
-                ((point.global_coord[2] - self.origin.global_coord[2]) / self.direction.global_coord[2]) and \
-                ((point.global_coord[2] - self.origin.global_coord[2]) / self.direction.global_coord[2]) == \
-                ((point.global_coord[0] - self.origin.global_coord[0]) / self.direction.global_coord[0]):
+        if (
+            (
+                (point.global_coord[0] - self.origin.global_coord[0])
+                / self.direction.global_coord[0]
+            )
+            == (
+                (point.global_coord[1] - self.origin.global_coord[1])
+                / self.direction.global_coord[1]
+            )
+            and (
+                (point.global_coord[1] - self.origin.global_coord[1])
+                / self.direction.global_coord[1]
+            )
+            == (
+                (point.global_coord[2] - self.origin.global_coord[2])
+                / self.direction.global_coord[2]
+            )
+            and (
+                (point.global_coord[2] - self.origin.global_coord[2])
+                / self.direction.global_coord[2]
+            )
+            == (
+                (point.global_coord[0] - self.origin.global_coord[0])
+                / self.direction.global_coord[0]
+            )
+        ):
             return True
         else:
             return False
 
-    def parallel(self, line: 'Line') -> bool:
+    def parallel(self, line: "Line") -> bool:
         """
         checks if line is parralel to another line
         Parameters
@@ -373,9 +441,15 @@ class Line:
         -------
             float
         """
-        return ((Vector(self.origin.global_coord - point.global_coord).abs ** 2 * self.direction.abs_global ** 2
-                 - np.dot((self.origin.global_coord - point.global_coord), self.direction.global_coord) ** 2)
-                / self.direction.abs_global ** 2)
+        return (
+            Vector(self.origin.global_coord - point.global_coord).abs ** 2
+            * self.direction.abs_global**2
+            - np.dot(
+                (self.origin.global_coord - point.global_coord),
+                self.direction.global_coord,
+            )
+            ** 2
+        ) / self.direction.abs_global**2
 
     def point_on_line(self, k: float) -> Vector:
         """
@@ -401,6 +475,7 @@ class Plane:
     origin: :class:`Vector`
     normal: :class:`Vector`
     """
+
     def __init__(self, origin: Vector, normal: Vector):
 
         if origin.basis == normal.basis:
@@ -408,20 +483,24 @@ class Plane:
             self._normal = normal
             self._define_basis()
         else:
-            raise LinearAlgebraError("input vectors need to be expressed in the same basis")
+            raise LinearAlgebraError(
+                "input vectors need to be expressed in the same basis"
+            )
 
     def __repr__(self) -> str:
-        return (f"< plane: {self.parametric_form[0]:.2f}*x + {self.parametric_form[1]:.2f}*y "
-                f"+ {self.parametric_form[2]:.2f}*z = {self.parametric_form[3]:.2f} >")
+        return (
+            f"< plane: {self.parametric_form[0]:.2f}*x + {self.parametric_form[1]:.2f}*y "
+            f"+ {self.parametric_form[2]:.2f}*z = {self.parametric_form[3]:.2f} >"
+        )
 
     @property
     def normal(self) -> Vector:
-        """ returns normal vector """
+        """returns normal vector"""
         return self._normal
 
     @property
     def origin(self) -> Vector:
-        """ returns origin vecttor """
+        """returns origin vecttor"""
         return self._origin
 
     @property
@@ -462,10 +541,17 @@ class Plane:
             nd.array
                 [n1, n2, n3, d]
         """
-        return np.array([self.normal.global_coord[0] / self.normal.abs_global,
-                         self.normal.global_coord[1] / self.normal.abs_global,
-                         self.normal.global_coord[2] / self.normal.abs_global,
-                         np.dot(self.normal.global_coord / self.normal.abs_global, self.origin.global_coord)])
+        return np.array(
+            [
+                self.normal.global_coord[0] / self.normal.abs_global,
+                self.normal.global_coord[1] / self.normal.abs_global,
+                self.normal.global_coord[2] / self.normal.abs_global,
+                np.dot(
+                    self.normal.global_coord / self.normal.abs_global,
+                    self.origin.global_coord,
+                ),
+            ]
+        )
 
     def on_plane(self, point: Vector) -> bool:
         """
@@ -478,7 +564,10 @@ class Plane:
         -------
             bool
         """
-        if np.dot(self.normal.global_coord, point.global_coord) == self.parametric_form[3]:
+        if (
+            np.dot(self.normal.global_coord, point.global_coord)
+            == self.parametric_form[3]
+        ):
             return True
         else:
             return False
@@ -496,8 +585,12 @@ class Plane:
         -------
             float
         """
-        return (abs((np.sum(self.parametric_form[:3] * point.global_coord) - self.parametric_form[3]))
-                / np.sqrt(np.sum(np.square(self.parametric_form[:3]))))
+        return abs(
+            (
+                np.sum(self.parametric_form[:3] * point.global_coord)
+                - self.parametric_form[3]
+            )
+        ) / np.sqrt(np.sum(np.square(self.parametric_form[:3])))
 
     def _define_basis(self):
         """
@@ -513,35 +606,76 @@ class Plane:
                 self._basis.permute((1, 3, 2))
 
             self._basis.offset = self.origin.global_coord
+
+            return
         # parallel to x,y or z axis
         elif np.count_nonzero(self.parametric_form[:-1] == 0) == 1:
+            # TODO: This works for now, but it would be better if one of the in-plane basis vectors would be the cartesian unit vector of the parallel axis. This is not hard to do, but not a priority
+
+            _basis3 = self.normal.global_coord / self.normal.abs_global
+
             if self.parametric_form[0] == 0:  # x-axis
-                self._basis = Basis(
-                    [0, np.sqrt(2), np.sqrt(2)], [0, -1 * np.sqrt(2), np.sqrt(2)], [1, 0, 0]
-                )
+                _basis1 = [1, 0, 0]
 
             elif self.parametric_form[1] == 0:  # y-axis
-                self._basis = Basis(
-                    [np.sqrt(2), 0, np.sqrt(2)], [np.sqrt(2), 0, -1 * np.sqrt(2)], [0, 1, 0]
-                )
-
+                _basis1 = [0, 1, 0]
             elif self.parametric_form[2] == 0:  # z-axis
-                self._basis = Basis(
-                    [np.sqrt(2), np.sqrt(2), 0], [-1 * np.sqrt(2), np.sqrt(2), 0], [0, 0, 1],
-                )
+                _basis1 = [0, 0, 1]
+
+            _basis3 = self.normal.global_coord / self.normal.abs_global
+            _basis2 = np.cross(_basis1, _basis3)
+            self._basis = Basis(_basis1, _basis2, _basis3)
 
             self._basis.offset = self.origin.global_coord
-            # plane with no restrictions
+            return
+        # plane with origin on global origin
+        elif np.all(self.origin.global_coord == np.array([0, 0, 0])):
+            # this is a stupid solution but involves the least amount of math. We pretend the plane has the origin (1,1,1), calculate the basis vectors and then use them at the global origin...
+
+            self._origin = Vector((1, 1, 1))
+
+            _x_intsec = Vector(
+                [self.parametric_form[3] / self.parametric_form[0], 0, 0]
+            )
+            _basis3 = self.normal.global_coord / self.normal.abs_global
+            _basis1 = (
+                (_x_intsec - self._origin)
+                * (1 / Vector(_x_intsec - self._origin).abs_global)
+            ).global_coord
+            _basis2 = Vector(
+                np.cross(_basis1, _basis3)
+                * (1 / Vector(np.cross(_basis1, _basis3)).abs_global)
+            ).global_coord
+            self._basis = Basis(_basis1, _basis2, _basis3)
+
+            self._origin = Vector((0, 0, 0))
+
+            self.basis.offset = self.origin.global_coord
+
+            return
+        # plane with no restrictions
         else:
             _origin = Vector(self.origin.global_coord)
-            _x_intsec = Vector([self.parametric_form[3] / self.parametric_form[0], 0, 0])
-            _y_intsec = Vector([0, self.parametric_form[3] / self.parametric_form[1], 0])
+            _x_intsec = Vector(
+                [self.parametric_form[3] / self.parametric_form[0], 0, 0]
+            )
+            _y_intsec = Vector(
+                [0, self.parametric_form[3] / self.parametric_form[1], 0]
+            )
             _basis3 = self.normal.global_coord / self.normal.abs_global
             if not _origin == _x_intsec:
-                _basis1 = ((_x_intsec - _origin) * (1 / Vector(_x_intsec - _origin).abs_global)).global_coord
+                _basis1 = (
+                    (_x_intsec - _origin) * (1 / Vector(_x_intsec - _origin).abs_global)
+                ).global_coord
             else:
-                _basis1 = ((_y_intsec - _origin) * (1 / Vector(_y_intsec - _origin).abs_global)).global_coord
-            _basis2 = Vector(np.cross(_basis1, _basis3) * (
-                        1 / Vector(np.cross(_basis1, _basis3)).abs_global)).global_coord
+                _basis1 = (
+                    (_y_intsec - _origin) * (1 / Vector(_y_intsec - _origin).abs_global)
+                ).global_coord
+            _basis2 = Vector(
+                np.cross(_basis1, _basis3)
+                * (1 / Vector(np.cross(_basis1, _basis3)).abs_global)
+            ).global_coord
             self._basis = Basis(_basis1, _basis2, _basis3)
             self.basis.offset = self.origin.global_coord
+
+            return

@@ -69,30 +69,38 @@ def average_line(list_of_points: List[Vector]) -> Line:
     for pair in point_pairs:
         _origin.append(Vector(pair[0].global_coord))
         _direction.append(Vector(pair[1].global_coord) - Vector(pair[0].global_coord))
-    x0 = np.array([_average_vectors(_origin).global_coord, _average_vectors(_direction).global_coord]).flatten()
+    x0 = np.array(
+        [
+            _average_vectors(_origin).global_coord,
+            _average_vectors(_direction).global_coord,
+        ]
+    ).flatten()
 
     res = minimize(_minimize, x0, args=(list_of_points))
 
-    return Line(Vector([res.x[0], res.x[1], res.x[2]]),
-                Vector([res.x[3], res.x[4], res.x[5]]) * (1 / Vector([res.x[3], res.x[4], res.x[5]]).abs))
+    return Line(
+        Vector([res.x[0], res.x[1], res.x[2]]),
+        Vector([res.x[3], res.x[4], res.x[5]])
+        * (1 / Vector([res.x[3], res.x[4], res.x[5]]).abs),
+    )
 
 
 def average_plane(list_of_points: List[Vector]) -> Plane:
     """
-      returns average plane through a given set of points. The average plane is determined by a
-      least square minimization of the distance of all points to the line.
+     returns average plane through a given set of points. The average plane is determined by a
+     least square minimization of the distance of all points to the line.
 
-      Parameters
-      ----------
-     list_of_points: list of :class:`vectors`
-        list of vectors, not necessarily the same basis, defining points in the global reference frame
+     Parameters
+     ----------
+    list_of_points: list of :class:`vectors`
+       list of vectors, not necessarily the same basis, defining points in the global reference frame
 
-      Returns
-      -------
-      avg_plane: :class:`plane`
-          average plane through points
+     Returns
+     -------
+     avg_plane: :class:`plane`
+         average plane through points
 
-      """
+    """
 
     def _minimize(x: np.ndarray, pnts: List[Vector]) -> float:
         """
@@ -119,9 +127,15 @@ def average_plane(list_of_points: List[Vector]) -> Plane:
     # estimating starting values from average
     _avg_vec = _average_vectors(list_of_points)
     _origin0 = _avg_vec.global_coord
-    _norm0 = np.cross((list_of_points[0] - _avg_vec).global_coord, (list_of_points[-1] - _avg_vec).global_coord)
+    _norm0 = np.cross(
+        (list_of_points[0] - _avg_vec).global_coord,
+        (list_of_points[-1] - _avg_vec).global_coord,
+    )
     x0 = np.array([_origin0, _norm0]).flatten()
     res = minimize(_minimize, x0, args=(list_of_points))
 
-    return Plane(Vector([res.x[0], res.x[1], res.x[2]]),
-                 Vector([res.x[3], res.x[4], res.x[5]]) * (1 / Vector([res.x[3], res.x[4], res.x[5]]).abs_global))
+    return Plane(
+        Vector([res.x[0], res.x[1], res.x[2]]),
+        Vector([res.x[3], res.x[4], res.x[5]])
+        * (1 / Vector([res.x[3], res.x[4], res.x[5]]).abs_global),
+    )
