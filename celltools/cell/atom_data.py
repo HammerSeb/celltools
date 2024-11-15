@@ -3,7 +3,8 @@ import warnings
 
 
 class NotImplementedWarning(Warning):
-    """ Warning to signalize that a particular element has not been given a color and size yet for drawing """
+    """Warning to signalize that a particular element has not been given a color and size yet for drawing"""
+
     pass
 
 
@@ -132,7 +133,7 @@ property_dict = {
     "Mc": [[1, 1, 1, 1], 0.3],
     "Lv": [[1, 1, 1, 1], 0.3],
     "Ts": [[1, 1, 1, 1], 0.3],
-    "Og": [[1, 1, 1, 1], 0.3]
+    "Og": [[1, 1, 1, 1], 0.3],
 }
 
 
@@ -148,11 +149,14 @@ def ELEM_TO_COLOR(element: str) -> list:
     -------
         list
     """
-    _implemented = ['H', 'C', 'N', 'O', 'Zn']
+    _implemented = ["H", "C", "N", "O", "Zn"]
     if element in _implemented:
         return property_dict[element][0]
     else:
-        warnings.warn("element is not implemented yet, return will be white", NotImplementedWarning)
+        warnings.warn(
+            "element is not implemented yet, return will be white",
+            NotImplementedWarning,
+        )
         return property_dict[element][0]
 
 
@@ -168,9 +172,11 @@ def ELEM_TO_SIZE(element: str) -> float:
     -------
         float
     """
-    _implemented = ['H', 'C', 'N', 'O', 'Zn']
+    _implemented = ["H", "C", "N", "O", "Zn"]
     if element in _implemented:
         return property_dict[element][1]
     else:
-        warnings.warn("element is not implemented yet, return will be 0.3", NotImplementedWarning)
+        warnings.warn(
+            "element is not implemented yet, return will be 0.3", NotImplementedWarning
+        )
         return property_dict[element][1]

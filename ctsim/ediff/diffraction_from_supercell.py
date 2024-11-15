@@ -10,9 +10,12 @@ from celltools.linalg import Vector
 from crystals.lattice import Lattice
 from skued.simulation import affe
 
-IndexLike = Tuple[int, int ,int]
+IndexLike = Tuple[int, int, int]
 
-def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm: bool = True) -> Tuple[List[Vector], List[complex]]:
+
+def diffraction_from_supercell(
+    hkl: List[IndexLike], supercell: SuperCell, norm: bool = True
+) -> Tuple[List[Vector], List[complex]]:
     """
     calculates the scattering vectors and respective complex scattering amplitude for a list of hkl indices from a
     super cell. Uses atomic form factors form scikit-ued and crystals.lattice.Lattice to calculate the scattering
@@ -34,9 +37,9 @@ def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm:
             amplitude of reflection of respective hkl index
     """
     if norm:
-        N = supercell.size[0]*supercell.size[1]*supercell.size[2]
+        N = supercell.size[0] * supercell.size[1] * supercell.size[2]
     else:
-        N=1
+        N = 1
 
     lattice = Lattice(supercell.lattice.basis)
     _scatt_vector = []
@@ -54,14 +57,20 @@ def diffraction_from_supercell(hkl: List[IndexLike], supercell: SuperCell, norm:
         _formfactor = []
         _coords = []
         for atm in _atms:
-            _formfactor.append(affe(atm.element, np.sqrt(np.sum(np.square(_scatt_vector[-1].global_coord)))))
+            _formfactor.append(
+                affe(
+                    atm.element,
+                    np.sqrt(np.sum(np.square(_scatt_vector[-1].global_coord))),
+                )
+            )
             _coords.append(atm.coords.global_coord)
 
         ff = np.array(_formfactor)
         r = np.array(_coords)
 
         _amplitude.append(
-            (1/N) * np.sum( ff * exp(-1j *  np.sum(_scatt_vector[-1].global_coord * r, axis=1) ))
+            (1 / N)
+            * np.sum(ff * exp(-1j * np.sum(_scatt_vector[-1].global_coord * r, axis=1)))
         )
 
     return _scatt_vector, _amplitude

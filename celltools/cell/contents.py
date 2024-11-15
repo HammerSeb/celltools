@@ -8,6 +8,7 @@ from crystals.atom import Element, ElementLike
 from celltools.linalg import Vector, Basis
 from celltools.linalg.basis import LinearAlgebraError
 
+
 def _sort2lists(lst1: list, lst2: list) -> Tuple[list, list]:
     """
     sorts two unsorted lists according to first given list
@@ -21,10 +22,12 @@ def _sort2lists(lst1: list, lst2: list) -> Tuple[list, list]:
     l1, l2: sorted lists
 
     """
-    return [l1 for l1, _ in sorted(zip(lst1, lst2))], [l2 for _, l2 in sorted(zip(lst1, lst2))]
+    return [l1 for l1, _ in sorted(zip(lst1, lst2))], [
+        l2 for _, l2 in sorted(zip(lst1, lst2))
+    ]
 
 
-def auto_label_atoms(atms: List['Atom']) -> None:
+def auto_label_atoms(atms: List["Atom"]) -> None:
     """
     adds labels to a given list of atoms. The label will be the element letter and a number from 1 to the number of
     atoms of that elements. E.g., if there is for carbon atoms in the list the labels will be "C1", "C2", "C3", "C4".
@@ -51,7 +54,7 @@ def auto_label_atoms(atms: List['Atom']) -> None:
         no_of_elements[_idx] -= 1
 
 
-def auto_label_molecules(molcs: List['Molecule']) -> None:
+def auto_label_molecules(molcs: List["Molecule"]) -> None:
     """
     adds labels to a given list of Molecules. Every molecule label will be numbered up to the number of occurrences of
     that label in the list of molecules.
@@ -75,7 +78,7 @@ def auto_label_molecules(molcs: List['Molecule']) -> None:
         no_of_labels[_idx] -= 1
 
 
-def chemical_formula(atms: Union[List['Atom'], 'Molecule']) -> str:
+def chemical_formula(atms: Union[List["Atom"], "Molecule"]) -> str:
     """
     Returns the chemical formula of a molecule,
     Parameters
@@ -102,14 +105,16 @@ def chemical_formula(atms: Union[List['Atom'], 'Molecule']) -> str:
 
     no_of_elements, elements = _sort2lists(no_of_elements, elements)
 
-    chem_form = ''
+    chem_form = ""
     for e, n in zip(elements, no_of_elements):
         chem_form += e + str(n)
 
     return chem_form
 
 
-def auto_bonds(atm_list: List['Atom'], rmin: float = 1, rmax: float = 2) -> List['Bond']:
+def auto_bonds(
+    atm_list: List["Atom"], rmin: float = 1, rmax: float = 2
+) -> List["Bond"]:
     """
     generates list of bonds from given atom list. A bond between two atoms is generated if the distances of the two
     atoms lies between rmin and rmax
@@ -151,7 +156,12 @@ class Atom(Element):
         label of the atom
     """
 
-    def __init__(self, atm: ElementLike, position: Optional[Vector] = None, label: Optional[str] = None):
+    def __init__(
+        self,
+        atm: ElementLike,
+        position: Optional[Vector] = None,
+        label: Optional[str] = None,
+    ):
         super().__init__(atm)
         if not position:
             self._v = None
@@ -169,7 +179,7 @@ class Atom(Element):
         else:
             return f"< {self.element} @ {self.coords}>"
 
-    def __eq__(self, other: 'Atom') -> bool:
+    def __eq__(self, other: "Atom") -> bool:
         if isinstance(other, Atom):
             if self.element == other.element and self.coords == other.coords:
                 return True
@@ -180,13 +190,13 @@ class Atom(Element):
 
     @property
     def coords(self) -> Vector:
-        """ returns atom position """
+        """returns atom position"""
         if self._v:
             return self._v
 
     @property
     def label(self) -> str:
-        """ returns atom label """
+        """returns atom label"""
         if self._label:
             return self._label
 
@@ -232,7 +242,9 @@ class Bond:
                 self._atm1 = atm1
                 self._atm2 = atm2
             else:
-                raise LinearAlgebraError("positions of atm1 and atm2 must be in the same basis.")
+                raise LinearAlgebraError(
+                    "positions of atm1 and atm2 must be in the same basis."
+                )
         else:
             raise ValueError("input needs to be instance of atom.")
 
@@ -276,7 +288,12 @@ class Molecule:
 
     """
 
-    def __init__(self, atms: List[Atom], bonds: Optional[List[Bond]] = None, label: Optional[str] = None):
+    def __init__(
+        self,
+        atms: List[Atom],
+        bonds: Optional[List[Bond]] = None,
+        label: Optional[str] = None,
+    ):
         self._atoms = atms
         auto_label_atoms(self._atoms)
 
@@ -314,22 +331,22 @@ class Molecule:
 
     @property
     def atoms(self) -> List[Atom]:
-        """ returns atom list """
+        """returns atom list"""
         return self._atoms
 
     @property
     def bonds(self) -> List[Bond]:
-        """ returns bond list """
+        """returns bond list"""
         return self._bonds
 
     @property
     def atom_labels(self) -> List[str]:
-        """ returns list of atom labels """
+        """returns list of atom labels"""
         return [atm.label for atm in self.atoms]
 
     @property
     def label(self) -> str:
-        """ returns label of molecule """
+        """returns label of molecule"""
         return self._label
 
     @atom_labels.setter
@@ -347,14 +364,16 @@ class Molecule:
                 if list of labels is not the same length as list of atoms
         """
         if len(labels) != len(self.atoms):
-            raise ValueError("lengt of list of labels needs to be the same as number of atoms")
+            raise ValueError(
+                "lengt of list of labels needs to be the same as number of atoms"
+            )
         else:
             for label, atom in zip(labels, self._atoms):
                 atom.label(label)
 
     @label.setter
     def label(self, label: str):
-        """ set label of molecule """
+        """set label of molecule"""
         self._label = label
 
     def add_bond(self, bnd: Union[Bond, Tuple[Atom, Atom]]):
@@ -398,15 +417,15 @@ class Lattice(Basis):
 
 class ReciprocalLattice(Lattice):
     """
-    reciprocal lattice, inherits from Lattice. Defines the canonical reciprocal lattice from a given crystal lattice (a,b,c): 
+    reciprocal lattice, inherits from Lattice. Defines the canonical reciprocal lattice from a given crystal lattice (a,b,c):
 
-        a* = 2*pi/V (b x c) 
-        b* = 2*pi/V (c x a) 
-        c* = 2*pi/V (a x b) 
+        a* = 2*pi/V (b x c)
+        b* = 2*pi/V (c x a)
+        c* = 2*pi/V (a x b)
 
         with V = (a . (b x c)) the unit cell Volume
-    
-    Units are in 1/length where length is the length unit of the crystal lattice. 
+
+    Units are in 1/length where length is the length unit of the crystal lattice.
 
     Note: Here, the basis vectors are chosen to incorporate the 2pi factor into the reciprocal lattice itself!
 
@@ -415,8 +434,9 @@ class ReciprocalLattice(Lattice):
     lattice : Lattice
         crystal lattice from which the reciprocal lattice is derived
     """
+
     def __init__(self, lattice: Lattice) -> Lattice:
-        
+
         V = np.dot(lattice.v1, np.cross(lattice.v2, lattice.v3))
 
         rec_a = 2 * np.pi * np.cross(lattice.v2, lattice.v3) / V
@@ -447,12 +467,12 @@ class Cell:
 
     @property
     def lattice(self) -> Lattice:
-        """ lattice systems """
+        """lattice systems"""
         return self._lattice
-    
-    @property 
+
+    @property
     def reciprocal_lattice(self) -> ReciprocalLattice:
-        """ reciprocal lattice of cell """
+        """reciprocal lattice of cell"""
         return self._reciprocal_lattice
 
     @property
@@ -470,12 +490,12 @@ class Cell:
 
     @property
     def atoms(self) -> List[Atom]:
-        """ atoms in the unit cell """
+        """atoms in the unit cell"""
         return self._atoms
 
     @property
     def molecules(self) -> List[Molecule]:
-        """ molecules in the unit cell"""
+        """molecules in the unit cell"""
         return self._molecules
 
     def set_lattice(self, latt: Union[Lattice, Basis]):
@@ -538,16 +558,16 @@ class Cell:
             if atom_number=0 all atoms are converted into one molecule
         """
 
-        if isinstance(atom_number, int) and atom_number==0:
+        if isinstance(atom_number, int) and atom_number == 0:
             self.add_molecule(Molecule(self.atoms))
             self._atoms = []
 
-        elif isinstance(atom_number, int) and atom_number>0:
-            no_of_molecules = int(len(self.atoms)/atom_number)
+        elif isinstance(atom_number, int) and atom_number > 0:
+            no_of_molecules = int(len(self.atoms) / atom_number)
             for nom in range(no_of_molecules):
                 _molc = []
                 for an in range(atom_number):
-                    _molc.append(self.atoms[nom*atom_number+an])
+                    _molc.append(self.atoms[nom * atom_number + an])
                 self.add_molecule(Molecule(_molc))
 
         elif isinstance(atom_number, list):
@@ -555,7 +575,7 @@ class Cell:
             for nom, atom_number in enumerate(list):
                 _molc = []
                 for an in range(atom_number):
-                    _molc.append(self.atoms[start_index+an])
+                    _molc.append(self.atoms[start_index + an])
                 self.add_molecule(Molecule(_molc))
                 start_index += atom_number
 
