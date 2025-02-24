@@ -1,5 +1,5 @@
 import unittest
-from celltools.linalg.basis import Basis, Vector, LinearAlgebraError
+from celltools.linalg.basis import Basis, Vector, LinearAlgebraError, Line
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -58,6 +58,31 @@ class TestVector(unittest.TestCase):
         self.assertEqual(vec1.parallel(vec2), True, "Vector parallel: Parallel vectors not detected")
         self.assertEqual(vec1.parallel(vec3), False, "Vector parallel: Not parallel vectors not detected")
 
+class TestLine(unittest.TestCase):
+    
+    def __init__(self, methodName = "runTest"):
+        super().__init__(methodName)
+        self.v1, self.v2, self.v3, self.v4 = np.array([1,0,1]), np.array([0,1,0]), np.array([1,2,3]), np.array([2,4,6])
+        self.base1 = Basis(self.v1,self.v2,self.v3,offset=(5,6,7))
+        self.base2 = Basis(self.v1,self.v2,self.v4)
+    
+    def test_valid_initialization(self):
+        orig = Vector([0,0,0], self.base1)
+        dir = Vector([1,0,0], self.base1)
+        
+        line = Line(orig, dir)
+        self.assertEqual(line.origin, orig, "Line initialize: Origin not set correctly")
+        self.assertEqual(line.direction, dir, "Line initialize: Direction not set correctly")
+
+
+        with self.assertRaises(LinearAlgebraError) as context:
+            Line(orig, Vector([1,0,0], self.base2))
+        self.assertEqual(str(context.exception), "input vectors need to be expressed in the same basis", "Line initialize: Different basis not caught")
+        
+        ### ToDo: should there be more tests checking if other things work properly?
+
+
+    
 if __name__ == "__main__":
     unittest.main()
 
