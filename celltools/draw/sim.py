@@ -1,3 +1,4 @@
+from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -16,7 +17,7 @@ def gaussian_2d(
     offset: float = 0,
 ) -> np.ndarray:
     """
-    _summary_
+    _summary_float
 
     Parameters
     ----------
@@ -46,7 +47,7 @@ def gaussian_2d(
 
 
 def show_diffraction_experiment(
-    diffexp: DiffractionExperiment, qrange: float, *, kwargs=None
+    diffexp: DiffractionExperiment, qrange: float, broadening: Tuple = (0.1,0.1), *, kwargs=None
 ) -> [Figure, Axes]:
     """
     show diffraction Experiment using matplotlib's imshow
@@ -57,6 +58,8 @@ def show_diffraction_experiment(
         diffraction Experiment to plot
     qrange : float
         reciprocal space range to plot
+    broadening : Tuple of floats
+        standard deviation (sd_x, sd_y) for peak broadening of 2D Gaussian peaks in units of q
     kwargs : _type_
         kwargs of imshow
 
@@ -73,7 +76,7 @@ def show_diffraction_experiment(
     intensity = np.zeros(qx.shape)
 
     for q, S in zip(diffexp.reflections, diffexp.structure_factor):
-        intensity += gaussian_2d(qx, qy, np.abs(S) ** 2, q[0], q[1], 0.1, 0.1)
+        intensity += gaussian_2d(qx, qy, np.abs(S) ** 2, q[0], q[1], broadening[0], broadening[1])
 
     f, ax = plt.subplots()
 
