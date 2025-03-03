@@ -61,6 +61,7 @@ def ewald_diffraction(
         None, Literal["exponential"], Literal["gaussian"]
     ] = None,
     sample_thickness: float = 0,
+    plane_approximation: bool = False
 ) -> [List[Vector], List[complex], List[float]]:
     """_summary_
 
@@ -76,9 +77,10 @@ def ewald_diffraction(
         In reality, the scattering condition is not only fulfilled if the Gamma point lies on the Ewald sphere but in a region around the Gamma point due to mosaicity, crystal size effects etc. This value gives the cutoff ratio in which range the scattering condition is viewed as fulfilled, i.e. if |(distance to Ewald sphere)/(radius of Ewald sphere)| < ds_cutoff reciprocal lattice point fulfills scattering condition. by default 1e-3
     distance_correction : None, "exponential", "gaussian", optional
         Describes the intensity modulation for points fulfilling the scattering condition with distance from the Ewald sphere. by default None
-    sample_thickness: float: optional
+    sample_thickness: float, optional
         the sample thickness is used to calculate the scaling parameter sigma for the distance correction. We use the first minimum of the Laue equation so far which yields sigma = thickness/pi. NOTE: THIS OVERESTIMATES THE SCATTERING INTENSITY
-        
+    plane_approximation: bool, optional
+        weather or not to use the plane approximation for the Ewald sphere. default False
     Returns
     -------
     refelctions, structure_factor, ds
@@ -105,22 +107,36 @@ def ewald_diffraction(
 
     k_grid = [Vector(hkl, cell.reciprocal_lattice) for hkl in product(_nx, _ny, _nz)]
     k_origin = Vector((0, 0, 0), cell.reciprocal_lattice)
-    # find center of Ewald sphere
-    sphere_center = -1 * k_vector
 
-    # build distance check sphere center and k grid
-    def distance_to_sphere_check(k_point):
-        distance_to_sphere = (k_point - sphere_center).abs_global - k_vector.abs_global
-        if abs(distance_to_sphere / k_vector.abs_global) < ds_cutoff:
-            return True, distance_to_sphere
-        else:
-            return False, distance_to_sphere
+    if not plane_approximation:
+        # find center of Ewald sphere
+        sphere_center = -1 * k_vector
+
+        # build distance check sphere center and k grid
+        def distance_to_sphere_check(k_point):
+            distance_to_sphere = (k_point - sphere_center).abs_global - k_vector.abs_global
+            if abs(distance_to_sphere / k_vector.abs_global) < ds_cutoff:
+                return True, distance_to_sphere
+            else:
+                return False, distance_to_sphere
+    else:
+        ewald_plane = Plane(k_origin, k_vector)
+        def distance_to_plane_check(k_point):
+            distance_to_plane = ewald_plane.distance(k_point)
+            if abs(distance_to_plane/k_vector.abs_global) < ds_cutoff:
+                return True, distance_to_plane
+            else:
+                return False, distance_to_plane
+
 
     # run distance check over k-grid
     reflections, structure_factor, ds = [], [], []
 
     for k_point in k_grid:
-        condition_fulfilled, distance_to_sphere = distance_to_sphere_check(k_point)
+        if not plane_approximation:
+            condition_fulfilled, distance_to_sphere = distance_to_sphere_check(k_point)
+        else:
+            condition_fulfilled, distance_to_sphere = distance_to_plane_check(k_point)
         if condition_fulfilled:
             reflections.append(k_point)
             if not distance_correction:
@@ -148,6 +164,7 @@ class DiffractionExperiment:
             None, Literal["exponential"], Literal["gaussian"]
         ] = None,
         sample_thickness: float = 0,
+        plane_approximation: bool = False
     ):
         """
         This class represents a diffraction experiment and calculates the diffraction using the Ewald sphere method on projects the reciprocal lattice points fulfilling the scattering condition on a plane normal to the incoming electron beam as would be the case for a planar detector.
@@ -167,8 +184,9 @@ class DiffractionExperiment:
         distance_correction :  None, "exponential", "gaussian", optional
             Describes the intensity modulation for points fulfilling the scattering condition with distance from the Ewald sphere. ONLY None IMPLEMENTED so far. by default None
         sample_thickness: float: optional
-        the sample thickness is used to calculate the scaling parameter sigma for the distance correction. We use the first minimum of the Laue equation so far which yields sigma = thickness/pi. NOTE: THIS OVERESTIMATES THE SCATTERING INTENSITY
-        
+            the sample thickness is used to calculate the scaling parameter sigma for the distance correction. We use the first minimum of the Laue equation so far which yields sigma = thickness/pi. NOTE: THIS OVERESTIMATES THE SCATTERING INTENSITY
+        plane_approximation: bool, optional
+            weather or not to use the plane approximation for the Ewald sphere. default False
         Returns
         -------
         DiffractionExperiment
@@ -178,7 +196,7 @@ class DiffractionExperiment:
         self._direction = direction
         self._electron_energy = electron_energy
         self._grid = grid
-        self._ewald_diffraction_kwargs = [ds_cutoff, distance_correction,sample_thickness]
+        self._ewald_diffraction_kwargs = [ds_cutoff, distance_correction,sample_thickness, plane_approximation]
 
         self.hkl = []
         self.reflections = []
@@ -205,7 +223,8 @@ class DiffractionExperiment:
             self.grid,
             ds_cutoff=self._ewald_diffraction_kwargs[0],
             distance_correction=self._ewald_diffraction_kwargs[1],
-            sample_thickness=self._ewald_diffraction_kwargs[2]
+            sample_thickness=self._ewald_diffraction_kwargs[2],
+            plane_approximation=self._ewald_diffraction_kwargs[3]
         )
 
         # make "Ewald plane"
