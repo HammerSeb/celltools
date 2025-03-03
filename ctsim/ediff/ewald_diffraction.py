@@ -60,6 +60,7 @@ def ewald_diffraction(
     distance_correction: Union[
         None, Literal["exponential"], Literal["gaussian"]
     ] = None,
+    sample_thickness: float = 0,
 ) -> [List[Vector], List[complex], List[float]]:
     """_summary_
 
@@ -74,8 +75,10 @@ def ewald_diffraction(
     ds_cutoff : float, optional
         In reality, the scattering condition is not only fulfilled if the Gamma point lies on the Ewald sphere but in a region around the Gamma point due to mosaicity, crystal size effects etc. This value gives the cutoff ratio in which range the scattering condition is viewed as fulfilled, i.e. if |(distance to Ewald sphere)/(radius of Ewald sphere)| < ds_cutoff reciprocal lattice point fulfills scattering condition. by default 1e-3
     distance_correction : None, "exponential", "gaussian", optional
-        Describes the intensity modulation for points fulfilling the scattering condition with distance from the Ewald sphere. ONLY None IMPLEMENTED so far. by default None
-
+        Describes the intensity modulation for points fulfilling the scattering condition with distance from the Ewald sphere. by default None
+    sample_thickness: float: optional
+        the sample thickness is used to calculate the scaling parameter sigma for the distance correction. We use the first minimum of the Laue equation so far which yields sigma = thickness/pi. NOTE: THIS OVERESTIMATES THE SCATTERING INTENSITY
+        
     Returns
     -------
     refelctions, structure_factor, ds
@@ -120,7 +123,13 @@ def ewald_diffraction(
         condition_fulfilled, distance_to_sphere = distance_to_sphere_check(k_point)
         if condition_fulfilled:
             reflections.append(k_point)
-            structure_factor.append(calculate_structure_factor(cell, k_point))
+            if not distance_correction:
+                structure_factor.append(calculate_structure_factor(cell, k_point))
+            ### Here we use the square root of the exponential/gaussian so that the squared intensity is modulated by the intended exponential/gaussian, hence the factor .5 in the exponents
+            elif distance_correction == "exponential": 
+                structure_factor.append(np.exp(-.5 * distance_to_sphere / (sample_thickness / np.pi)) * calculate_structure_factor(cell, k_point))
+            elif distance_correction == "gaussian":
+                structure_factor.append(np.exp(-.5 * distance_to_sphere**2 / (sample_thickness / np.pi)**2) * calculate_structure_factor(cell, k_point))
             ds.append(distance_to_sphere)
 
     return reflections, structure_factor, ds
@@ -138,6 +147,7 @@ class DiffractionExperiment:
         distance_correction: Union[
             None, Literal["exponential"], Literal["gaussian"]
         ] = None,
+        sample_thickness: float = 0,
     ):
         """
         This class represents a diffraction experiment and calculates the diffraction using the Ewald sphere method on projects the reciprocal lattice points fulfilling the scattering condition on a plane normal to the incoming electron beam as would be the case for a planar detector.
@@ -156,7 +166,9 @@ class DiffractionExperiment:
             In reality, the scattering condition is not only fulfilled if the Gamma point lies on the Ewald sphere but in a region around the Gamma point due to mosaicity, crystal size effects etc. This value gives the cutoff ratio in which range the scattering condition is viewed as fulfilled, i.e. if |(distance to Ewald sphere)/(radius of Ewald sphere)| < ds_cutoff reciprocal lattice point fulfills scattering condition. by default 1e-3,
         distance_correction :  None, "exponential", "gaussian", optional
             Describes the intensity modulation for points fulfilling the scattering condition with distance from the Ewald sphere. ONLY None IMPLEMENTED so far. by default None
-
+        sample_thickness: float: optional
+        the sample thickness is used to calculate the scaling parameter sigma for the distance correction. We use the first minimum of the Laue equation so far which yields sigma = thickness/pi. NOTE: THIS OVERESTIMATES THE SCATTERING INTENSITY
+        
         Returns
         -------
         DiffractionExperiment
@@ -166,7 +178,7 @@ class DiffractionExperiment:
         self._direction = direction
         self._electron_energy = electron_energy
         self._grid = grid
-        self._ewald_diffraction_kwargs = [ds_cutoff, distance_correction]
+        self._ewald_diffraction_kwargs = [ds_cutoff, distance_correction,sample_thickness]
 
         self.hkl = []
         self.reflections = []
@@ -193,6 +205,7 @@ class DiffractionExperiment:
             self.grid,
             ds_cutoff=self._ewald_diffraction_kwargs[0],
             distance_correction=self._ewald_diffraction_kwargs[1],
+            sample_thickness=self._ewald_diffraction_kwargs[2]
         )
 
         # make "Ewald plane"
